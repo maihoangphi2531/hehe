@@ -1,0 +1,35 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local function onCharacterAdded(character)
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+    
+    local function attackNearbyEnemies()
+        for _, enemy in pairs(workspace.Enemies:GetChildren()) do
+            if (enemy:FindFirstChild("HumanoidRootPart") and 
+                (humanoidRootPart.Position - enemy.HumanoidRootPart.Position).magnitude < 10) then
+                game:GetService("ReplicatedStorage").Events.Attack:FireServer(enemy)
+            end
+        end
+    end
+    
+    local function autoFarm()
+        for _, farmable in pairs(workspace.Farmables:GetChildren()) do
+            if (humanoidRootPart.Position - farmable.Position).magnitude < 15 then
+                game:GetService("ReplicatedStorage").Events.Collect:FireServer(farmable)
+            end
+        end
+    end
+
+    local function combinedFunction()
+        attackNearbyEnemies()
+        autoFarm()
+    end
+
+    game:GetService("RunService").Stepped:Connect(combinedFunction)
+end
+
+player.CharacterAdded:Connect(onCharacterAdded)
+if character then
+    onCharacterAdded(character)
+end
