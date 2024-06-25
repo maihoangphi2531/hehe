@@ -2975,7 +2975,7 @@ for aA, cG in pairs(Z) do
         e.ChildAdded:Connect(function(cH)
             if cH.Name == 'RaidChestGold' then
                 e.RaidChestGold.ChestBase.CFrame = J.CFrame;
-                wait(3.8)
+                
                 
                 repeat
                 wait()
@@ -2986,7 +2986,7 @@ for aA, cG in pairs(Z) do
         e.ChildAdded:Connect(function(cI)
             if cI.Name == 'RaidChestSilver' then
                 e.RaidChestSilver.ChestBase.CFrame = J.CFrame;
-                wait(3.8)
+                
                 
                 repeat
                 wait()
