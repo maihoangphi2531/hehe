@@ -675,7 +675,8 @@ local Y = {
     [9.1] = 10651527284,
     [9.2] = 10727165164,
     ["HalloweenHub"] = 5862277651,
-    ["HolidayEventDungeon"] = 4526768588
+    ["HolidayEventDungeon"] = 4526768588,
+    ["INF"] = 13988110964
 }
 local Z = {
     [1] = 5703353651,
