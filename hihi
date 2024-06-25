@@ -2874,7 +2874,6 @@ if game.PlaceId == Z[1] then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Get behind the active shield! (2)' then
             AutoFarm.State = false;
-            e.RaidChestSilver.ChestBase.CFrame = J.CFrame;
             J.CFrame = e.MissionObjects.IgnisShield.Ring.CFrame;
             wait(3)
             aK()
@@ -2886,6 +2885,7 @@ if game.PlaceId == 13988110964 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Advance to the next floor! (24)' then
             AutoFarm.State = false;
+            e.RaidChestGold.ChestBase.CFrame = J.CFrame;
             e.RaidChestSilver.ChestBase.CFrame = J.CFrame;
             J.CFrame = e.LobbyTeleport.Interaction.CFrame;
             wait(3)
