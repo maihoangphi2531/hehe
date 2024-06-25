@@ -1,5 +1,5 @@
 local function improveFPS()
-    local decalsyeeted = true -- LASDASD
+    local decalsyeeted = true -- asdasd
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -85,7 +85,8 @@ local function improveFPS()
         end)
     end)
 end
-
+-- Gọi hàm để cải thiện FPS
+improveFPS()
 local TeleportService = game:GetService("TeleportService")
 
 local dungeonId = {
@@ -2892,7 +2893,7 @@ if game.PlaceId == 13988110964 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'ENTER THE ARENA TO START!' then
             AutoFarm.State = false;
-            J.CFrame = e.LobbyTeleport.Interaction.CFrame;
+            J.CFrame = e.Boss_Gate.Interactions.Bounds.CFrame;
             wait(3)
             aK()
             AutoFarm.State = true
