@@ -1,5 +1,5 @@
 local function improveFPS()
-    local decalsyeeted = true -- Leaving this on makes games look worse but the fps goes up by at least 20.
+    local decalsyeeted = true -- LASDASD
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -85,33 +85,6 @@ local function improveFPS()
         end)
     end)
 end
-
--- Gọi hàm để cải thiện FPS
-improveFPS()
--- Định nghĩa hàm chạy sau 7 phút
-local function runAfter7Minutes()
-    print("runAfter7Minutes started")
-    -- Chờ 7 phút (420 giây)
-    wait(420)
-
-    -- Sau khi chờ 7 phút, thực hiện đoạn mã
-    local args = {
-        [1] = 34
-    }
-    local replicatedStorage = game:GetService("ReplicatedStorage")
-    local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
-    local startRaidEvent = teleportService:WaitForChild("StartRaid")
-    if startRaidEvent then
-        startRaidEvent:FireServer(unpack(args))
-        print("StartRaid event fired after 7 minutes.")
-    else
-        warn("StartRaid event not found!")
-    end
-end
-
--- Bắt đầu coroutine để không ảnh hưởng đến các hàm khác
-task.spawn(runAfter7Minutes)
-print("Coroutine started")
 
 local TeleportService = game:GetService("TeleportService")
 
