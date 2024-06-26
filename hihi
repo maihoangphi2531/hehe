@@ -685,7 +685,6 @@ local Z = {
     [4] = 10089970465,
     [5] = 10795158121,
     ["INF"] = 13988110964
-
 }
 local _ = {
     [1] = 4310463616,
@@ -2885,8 +2884,6 @@ if game.PlaceId == 13988110964 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Advance to the next floor! (24)' then
             AutoFarm.State = false;
-            e.RaidChestGold.ChestBase.CFrame = J.CFrame;
-            e.RaidChestSilver.ChestBase.CFrame = J.CFrame;
             J.CFrame = e.LobbyTeleport.Interaction.CFrame;
             wait(3)
             aK()
@@ -3052,7 +3049,6 @@ for aA, cG in pairs(Z) do
             end
         end)
     end
-    
 end
 for aA, B in pairs(Z) do
     if game.PlaceId == B then
