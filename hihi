@@ -24,5 +24,152 @@ local Window = Rayfield:CreateWindow({
        Key = {"Hello"} -- List of keys that will be accepted by the system, can be RAW file links (pastebin, github etc) or simple strings ("hello","key22")
     }
  })
+ local function improveFPS()
+    local decalsyeeted = true -- asdasd
+    local game = game
+    local workspace = game.Workspace
+    local lighting = game.Lighting
+    local terrain = workspace.Terrain
+    local settings = settings
+    
+    -- Thiết lập thuộc tính ẩn
+    sethiddenproperty(lighting, "Technology", 2)
+    sethiddenproperty(terrain, "Decoration", false)
+    
+    -- Thiết lập thuộc tính địa hình
+    terrain.WaterWaveSize = 0
+    terrain.WaterWaveSpeed = 0
+    terrain.WaterReflectance = 0
+    terrain.WaterTransparency = 0
+    
+    -- Thiết lập thuộc tính ánh sáng
+    lighting.GlobalShadows = false
+    lighting.FogEnd = 9e9
+    lighting.Brightness = 0
+    
+    -- Thiết lập chất lượng rendering
+    settings().Rendering.QualityLevel = "Level01"
+    
+    -- Hàm xử lý phần tử
+    local function processPart(v)
+        if v:IsA("BasePart") then
+            if not v:IsA("MeshPart") or (v:IsA("MeshPart") and decalsyeeted) then
+                v.Material = Enum.Material.Plastic
+                v.Reflectance = 0
+            end
+        elseif decalsyeeted then
+            if v:IsA("Decal") or v:IsA("Texture") then
+                v.Transparency = 1
+            elseif v:IsA("MeshPart") then
+                v.TextureID = 10385902758728957
+            elseif v:IsA("SpecialMesh") then
+                v.TextureId = 0
+            elseif v:IsA("ShirtGraphic") then
+                v.Graphic = 0
+            elseif v:IsA("Shirt") or v:IsA("Pants") then
+                v[v.ClassName.."Template"] = 0
+            end
+        end
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(0)
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 1
+            v.BlastRadius = 1
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = false
+        end
+    end
+    
+    -- Tắt các hiệu ứng ánh sáng
+    local function disableLightingEffects()
+        for _, e in pairs(lighting:GetChildren()) do
+            if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+                e.Enabled = false
+            end
+        end
+    end
+    
+    -- Xử lý các phần tử đã có trong workspace
+    for _, v in pairs(workspace:GetDescendants()) do
+        processPart(v)
+    end
+    
+    -- Tắt các hiệu ứng ánh sáng
+    disableLightingEffects()
+    
+    -- Kết nối sự kiện khi thêm phần tử mới vào workspace
+    workspace.DescendantAdded:Connect(function(v)
+        task.defer(processPart, v) -- Using task.defer to prevent errors without waiting
+    end)
+    
+    -- Kết nối sự kiện khi thêm hiệu ứng ánh sáng mới
+    lighting.ChildAdded:Connect(function(e)
+        task.defer(function()
+            if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+                e.Enabled = false
+            end
+        end)
+    end)
+end
+local function resetSettings()
+    local lighting = game.Lighting
+    local terrain = game.Workspace.Terrain
+
+    -- Khôi phục thuộc tính ẩn
+    sethiddenproperty(lighting, "Technology", 0) -- Giá trị mặc định
+    sethiddenproperty(terrain, "Decoration", true) -- Giá trị mặc định
+
+    -- Khôi phục thuộc tính địa hình
+    terrain.WaterWaveSize = 1
+    terrain.WaterWaveSpeed = 10
+    terrain.WaterReflectance = 0.5
+    terrain.WaterTransparency = 0.3
+
+    -- Khôi phục thuộc tính ánh sáng
+    lighting.GlobalShadows = true
+    lighting.FogEnd = 100000
+    lighting.Brightness = 2
+
+    -- Khôi phục chất lượng rendering
+    settings().Rendering.QualityLevel = "Automatic"
+
+    -- Khôi phục hiệu ứng ánh sáng
+    for _, e in pairs(lighting:GetChildren()) do
+        if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
+            e.Enabled = true
+        end
+    end
+
+    -- Khôi phục các phần tử đã có trong workspace
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA("BasePart") then
+            v.Material = Enum.Material.SmoothPlastic -- hoặc giá trị mặc định khác
+            v.Reflectance = 0.1 -- hoặc giá trị mặc định khác
+        end
+        if v:IsA("Decal") or v:IsA("Texture") then
+            v.Transparency = 0
+        elseif v:IsA("ParticleEmitter") or v:IsA("Trail") then
+            v.Lifetime = NumberRange.new(1, 2) -- hoặc giá trị mặc định khác
+        elseif v:IsA("Explosion") then
+            v.BlastPressure = 500000
+            v.BlastRadius = 10
+        elseif v:IsA("Fire") or v:IsA("SpotLight") or v:IsA("Smoke") or v:IsA("Sparkles") then
+            v.Enabled = true
+        end
+    end
+end
+
  local Tab = Window:CreateTab("Tab Example", 4483362458) -- Title, Image
  local Section = Tab:CreateSection("Section Example")
+ local Toggle = Tab:CreateToggle({
+    Name = "Toggle Example",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(Value)
+        if Value then
+            improveFPS()
+        else
+            resetSettings()
+        end
+    end,
+ })
