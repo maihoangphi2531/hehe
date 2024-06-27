@@ -2892,7 +2892,7 @@ if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     end)
 end
 
-if game.PlaceId == 13988110964 or game.PlaceId == 14400549310
+if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'ENTER THE ARENA TO START!' then
             AutoFarm.State = false;
