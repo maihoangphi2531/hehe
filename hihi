@@ -1,5 +1,5 @@
 local function improveFPS()
-    local decalsyeeted = true -- aaaaaaaaaaaaaaaaaaaa
+    local decalsyeeted = true -- asdasdasdasdasdasdasd
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -87,6 +87,7 @@ local function improveFPS()
 end
 -- Gọi hàm để cải thiện FPS
 improveFPS()
+al.ToggleCheckAndTeleport = true
 
 local TeleportService = game:GetService("TeleportService")
 
@@ -757,31 +758,11 @@ local function ag(ah, ai)
         writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
     end
 end
-
 local function ak(ah, ai)
     writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
 end
-local al = {
-    KillAura = true,
-    PetSkill = false,
-    AutoFarm = true,
-    GetDrop = false,
-    NoClip = false,
-    InfJump = false,
-    ReLoadOnHop = false,
-    ReduceLag = false,
-    RepeatRaid = false,
-    NoCutScene = false,
-    DelEgg = false,
-    SellNonLegend = false,
-    AutoSwitch = false,
-    SellLegend = false,
-    AiPing = false,
-    MoLPass = false,
-    MaxPerk = false,
-    HPHalf = false,
-    KlausDown = false,
-}
+local al = {KillAura, PetSkill, AutoFarm, GetDrop, NoClip, InfJump, ReLoadOnHop, ReduceLag, RepeatRaid, NoCutScene,
+            DelEgg, SellNonLegend, AutoSwitch, SellLegend, AiPing, MoLPass, MaxPerk, HPHalf, KlausDown,ToggleCheckAndTeleport}
 ag('WZ_Toggles', al)
 local am = {
     Webhook = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw'
@@ -2293,49 +2274,52 @@ local bL = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+al.KillAura = true
 local KillAura = bF:Toggle({
     Text = "KillAura",
     TextSize = 22,
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Disable = false,
-    Enabled = true,  -- Luôn bật KillAura khi khởi tạo
+    Enabled = al.KillAura,
     Callback = function(aJ)
         task.spawn(function()
-            al.KillAura = true  -- Thiết lập luôn bật
-            ak('WZ_Toggles', al)
-            if ad == 'Guardian' then
-                bw()
-            elseif ad == 'Demon' then
-                by()
-            elseif ad == 'Archer' then
-                bz()
-            elseif ad == 'Summoner' then
-                bB()
-            elseif ad == 'Warlord' then
-                bC()
-            end
-            for bM in pairs(ar) do
-                if bM == ad then
-                    br()
-                    bv()
+            al.KillAura = aJ;
+            if al.KillAura then
+                ak('WZ_Toggles', al)
+                if ad == 'Guardian' then
+                    bw()
+                elseif ad == 'Demon' then
+                    by()
+                elseif ad == 'Archer' then
+                    bz()
+                elseif ad == 'Summoner' then
+                    bB()
+                elseif ad == 'Warlord' then
+                    bC()
                 end
-            end
-            for bM in pairs(aq) do
-                if bM == ad then
-                    bt()
-                    bv()
+                for bM in pairs(ar) do
+                    if bM == ad then
+                        br()
+                        bv()
+                    end
                 end
-            end
-            for bM in pairs(ae) do
-                if bM == ad then
-                    bu()
+                for bM in pairs(aq) do
+                    if bM == ad then
+                        bt()
+                        bv()
+                    end
+                end
+                for bM in pairs(ae) do
+                    if bM == ad then
+                        bu()
+                    end
                 end
             end
         end)
     end
 })
-
+al.PetSkill = true
 local PetSkill = bF:Toggle({
     Text = "PetSkill",
     TextSize = 22,
@@ -2356,16 +2340,16 @@ local PetSkill = bF:Toggle({
         end)
     end
 })
-
+al.AutoFarm = true
 local AutoFarm = bF:Toggle({
     Text = "AutoFarm",
     TextSize = 22,
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Disable = false,
-    Enabled = true,  -- Luôn bật AutoFarm khi khởi tạo
+    Enabled = al.AutoFarm,
     Callback = function(aJ)
-        al.AutoFarm = true  -- Thiết lập luôn bật
+        al.AutoFarm = aJ;
         task.spawn(function()
             ak('WZ_Toggles', al)
             aK()
@@ -2377,17 +2361,22 @@ local AutoFarm = bF:Toggle({
             elseif ay() then
                 a6, a7, a9 = .1, 14, 5
             end
+            if not al.AutoFarm then
+                aI(true)
+                aM()
+            end
         end)
         task.spawn(function()
-            local bN
+            local bN;
             local bO = TweenInfo.new(a4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
             while al.AutoFarm do
                 local aW = bi()
-                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
+                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 /
+                    6 then
                     break
                 end
                 if aW then
-                    local bP = a8 * (tick() % a9) / a9
+                    local bP = a8 * (tick() % a9) / a9;
                     bN = i:Create(J, bO, {
                         CFrame = CFrame.new(aW.Position) * CFrame.Angles(0, math.rad(bP), 0) * CFrame.new(0, a6, a7)
                     })
@@ -2397,6 +2386,9 @@ local AutoFarm = bF:Toggle({
             end
             if bN and bN.PlaybackState == Enum.PlaybackState.Playing then
                 bN:Cancel()
+            end
+            if not al.AutoFarm then
+                aM()
             end
         end)
     end
