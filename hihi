@@ -2280,10 +2280,10 @@ local KillAura = bF:Toggle({
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Disable = false,
-    Enabled = al.KillAura,
+    Enabled = true,  -- Luôn bật KillAura khi khởi tạo
     Callback = function(aJ)
         task.spawn(function()
-            al.KillAura = aJ;
+            al.KillAura = true;  -- Thiết lập luôn bật
             if al.KillAura then
                 ak('WZ_Toggles', al)
                 if ad == 'Guardian' then
@@ -2318,6 +2318,7 @@ local KillAura = bF:Toggle({
         end)
     end
 })
+
 local PetSkill = bF:Toggle({
     Text = "PetSkill",
     TextSize = 22,
@@ -2345,9 +2346,9 @@ local AutoFarm = bF:Toggle({
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Disable = false,
-    Enabled = al.AutoFarm,
+    Enabled = true,  -- Luôn bật AutoFarm khi khởi tạo
     Callback = function(aJ)
-        al.AutoFarm = aJ;
+        al.AutoFarm = true;  -- Thiết lập luôn bật
         task.spawn(function()
             ak('WZ_Toggles', al)
             aK()
@@ -2369,8 +2370,7 @@ local AutoFarm = bF:Toggle({
             local bO = TweenInfo.new(a4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
             while al.AutoFarm do
                 local aW = bi()
-                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 /
-                    6 then
+                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
                     break
                 end
                 if aW then
@@ -2391,6 +2391,7 @@ local AutoFarm = bF:Toggle({
         end)
     end
 })
+
 al.GetDrop = true
 local bQ = bF:Toggle({
     Text = "GetDrops",
