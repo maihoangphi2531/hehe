@@ -1,5 +1,5 @@
 local function improveFPS()
-    local decalsyeeted = true -- asdasdasdasdasdasdasd
+    local decalsyeeted = true -- sssssssLeaving this on makes games look worse but the fps goes up by at least 20.
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -85,9 +85,33 @@ local function improveFPS()
         end)
     end)
 end
+
 -- Gọi hàm để cải thiện FPS
 improveFPS()
-al.ToggleCheckAndTeleport = true
+-- Định nghĩa hàm chạy sau 7 phút
+local function runAfter7Minutes()
+    print("runAfter7Minutes started")
+    -- Chờ 7 phút (420 giây)
+    wait(420)
+
+    -- Sau khi chờ 7 phút, thực hiện đoạn mã
+    local args = {
+        [1] = 34
+    }
+    local replicatedStorage = game:GetService("ReplicatedStorage")
+    local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
+    local startRaidEvent = teleportService:WaitForChild("StartRaid")
+    if startRaidEvent then
+        startRaidEvent:FireServer(unpack(args))
+        print("StartRaid event fired after 7 minutes.")
+    else
+        warn("StartRaid event not found!")
+    end
+end
+
+-- Bắt đầu coroutine để không ảnh hưởng đến các hàm khác
+task.spawn(runAfter7Minutes)
+print("Coroutine started")
 
 local TeleportService = game:GetService("TeleportService")
 
@@ -136,17 +160,21 @@ local lobbyId = {
 }
 
 local function isGameLoaded()
+    -- Kiểm tra nếu game đã tải xong
     return game:IsLoaded()
 end
 
 local function teleportIfInSpecificLobby()
+    -- Kiểm tra và thực hiện dịch chuyển nếu người dùng ở 'Main menu' hoặc 'World 1'
     if game.PlaceId == 2727067538 then
         warn("Teleporting from Main Menu to Hub 13")
-        local placeId = 4310463616
+        local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
         TeleportService:Teleport(placeId)
     elseif game.PlaceId == 4310463616 then
         warn("Teleporting from World 1 to Hub 34")
-        local args = { [1] = 34 }
+        local args = {
+            [1] = 34
+        }
 
         local replicatedStorage = game:GetService("ReplicatedStorage")
         local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
@@ -162,7 +190,7 @@ local function teleportIfInSpecificLobby()
 end
 
 function lobbyCheck()
-    for i, v in pairs(lobbyId) do
+    for i,v in pairs(lobbyId) do
         if game.PlaceId == i then
             warn("Lobby:", v)
             return true
@@ -172,17 +200,17 @@ function lobbyCheck()
 end
 
 function dungeonCheck()
-    for i, v in pairs(dungeonId) do
+    for i,v in pairs(dungeonId) do
         if game.PlaceId == i then
             warn("Dungeon:", v)
             return true
         end
     end
     return false
-end
+end 
 
 function towerCheck()
-    for i, v in pairs(towerId) do
+    for i,v in pairs(towerId) do
         if game.PlaceId == i then
             warn("Tower:", v)
             return true
@@ -209,31 +237,15 @@ local function checkAndTeleport()
     end
 end
 
-local checkAndTeleportCoroutine
-local isChecking = false
-
-local function startCheckingAndTeleporting()
-    if not isChecking then
-        isChecking = true
-        checkAndTeleportCoroutine = coroutine.create(function()
-            while isChecking do
-                checkAndTeleport()
-                wait(10)
-            end
-        end)
-        coroutine.resume(checkAndTeleportCoroutine)
+local function mainCoroutine()
+    while true do
+        checkAndTeleport()
+        wait(10)
     end
 end
 
-local function stopCheckingAndTeleporting()
-    if isChecking then
-        isChecking = false
-        if checkAndTeleportCoroutine then
-            coroutine.close(checkAndTeleportCoroutine)
-            checkAndTeleportCoroutine = nil
-        end
-    end
-end
+-- Khởi chạy coroutine
+coroutine.wrap(mainCoroutine)()
 -- Định nghĩa các biến thời gian và nội dung thông báo
 local OSTime = os.time()
 local Time = os.date('!*t', OSTime)
@@ -689,16 +701,14 @@ local Y = {
     [9.1] = 10651527284,
     [9.2] = 10727165164,
     ["HalloweenHub"] = 5862277651,
-    ["HolidayEventDungeon"] = 4526768588,
-    ["INF"] = 13988110964
+    ["HolidayEventDungeon"] = 4526768588
 }
 local Z = {
     [1] = 5703353651,
     [2] = 6075085184,
     [3] = 7071564842,
     [4] = 10089970465,
-    [5] = 10795158121,
-    ["INF"] = 13988110964
+    [5] = 10795158121
 }
 local _ = {
     [1] = 4310463616,
@@ -762,7 +772,7 @@ local function ak(ah, ai)
     writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
 end
 local al = {KillAura, PetSkill, AutoFarm, GetDrop, NoClip, InfJump, ReLoadOnHop, ReduceLag, RepeatRaid, NoCutScene,
-            DelEgg, SellNonLegend, AutoSwitch, SellLegend, AiPing, MoLPass, MaxPerk, HPHalf, KlausDown,ToggleCheckAndTeleport}
+            DelEgg, SellNonLegend, AutoSwitch, SellLegend, AiPing, MoLPass, MaxPerk, HPHalf, KlausDown}
 ag('WZ_Toggles', al)
 local am = {
     Webhook = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw'
@@ -2450,23 +2460,6 @@ local c9 = bG:Toggle({
             end)
         end)
     end
-})
-local c10 = bG:Toggle({
-    Text = "CheckMap",
-    TextSize = 22,
-    TextColor = Color3.fromRGB(255, 187, 109),
-    Font = Enum.Font.FredokaOne,
-    Enabled = al.ToggleCheckAndTeleport,
-    Callback = function(aJ)
-        al.ToggleCheckAndTeleport = aJ
-        task.spawn(function()
-            if al.ToggleCheckAndTeleport then
-                startCheckingAndTeleporting()
-            else
-                stopCheckingAndTeleporting()
-            end
-        end)
-    end,
 })
 
 bH:Button({
