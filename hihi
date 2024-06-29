@@ -87,7 +87,6 @@ local function improveFPS()
 end
 -- Gọi hàm để cải thiện FPS
 improveFPS()
-al.ToggleCheckAndTeleport = true
 
 local TeleportService = game:GetService("TeleportService")
 
