@@ -782,7 +782,6 @@ local al = {
     MaxPerk = false,
     HPHalf = false,
     KlausDown = false,
-    ToggleCheckAndTeleport = false
 }
 ag('WZ_Toggles', al)
 local am = {
