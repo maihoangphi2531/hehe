@@ -1,5 +1,6 @@
+wait(10)
 local function improveFPS()
-    local decalsyeeted = true -- sssssssLeaving this on makes games look worse but the fps goes up by at least 20.
+    local decalsyeeted = true -- zxczxcsszxczxczxcxcvxcvzzzzzzz
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -170,11 +171,6 @@ local function teleportIfInSpecificLobby()
         warn("Teleporting from Main Menu to Hub 13")
         local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
         TeleportService:Teleport(placeId)
-    elseif game.PlaceId == 4310463616 then
-        warn("Teleporting from World 1 to Hub 34")
-        local args = {
-            [1] = 34
-        }
 
         local replicatedStorage = game:GetService("ReplicatedStorage")
         local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
@@ -377,10 +373,11 @@ function getItemName()
     local playerName = game.Players.LocalPlayer.Name
     local playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
 
-    if not playerInventory then
-        warn("Player inventory not found!")
-        return itemNameTable
-    end
+    -- Chờ đợi profiles tải xong
+    repeat
+        wait(1)
+        playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
+    until playerInventory
 
     for i, v in ipairs(playerInventory.Inventory.Items:GetChildren()) do
         if v:FindFirstChild('Level') or v:FindFirstChild('Upgrade') or v:FindFirstChild('UpgradeLimit') then
@@ -446,7 +443,7 @@ end
 function ContinuousSellItem()
     while true do
         SellItem()
-        wait(10) -- Adjust the wait time as needed
+        wait(10) -- Điều chỉnh thời gian chờ nếu cần thiết
     end
 end
 
@@ -550,11 +547,11 @@ local n = {
     city = "v5.2"
 }
 
-
 a.NetworkClient.ConnectionAccepted:Connect(function(o, p)
     local q = o:sub(1, o:find("|") - 1)
     n = a.HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/" .. q))
 end)
+
 local r = {
     ["createUi"] = function(s, t)
         local u = {"MAI HOÀNG PHI", "🍊🍊🍊🍊🍊🍊🍊", "twist\nWorld Zero"}
@@ -573,14 +570,11 @@ local r = {
         }}
 
         -- Tạo ScreenGui và thêm vào CoreGui
-        local w = Instance.new("ScreenGui", game.CoreGui)
-        local x = Instance.new("ImageLabel", w)
-        local y = Instance.new("TextLabel", x)
-        local z = Instance.new("ImageLabel", x)
-
-        -- Thiết lập các thuộc tính của ScreenGui và các phần tử bên trong
+        local w = Instance.new("ScreenGui")
         w.Name = "ui" .. tostring(math.random(1, 1000))
+        w.Parent = game.CoreGui
 
+        local x = Instance.new("ImageLabel", w)
         x.Size = UDim2.new(0, 0, 0, 0)
         x.Position = UDim2.new(0.5, 0, 0.75, 0)
         x.Image = "rbxassetid://3570695787"
@@ -590,6 +584,7 @@ local r = {
         x.ScaleType = Enum.ScaleType.Slice
         x.SliceScale = 0.12
 
+        local y = Instance.new("TextLabel", x)
         y.Font = Enum.Font.LuckiestGuy
         y.TextColor3 = Color3.fromRGB(255, 255, 255)
         y.TextSize = 16 -- Kích thước chữ nhỏ hơn
@@ -599,6 +594,7 @@ local r = {
         y.Position = UDim2.new(0, 30, 0, 0)
         y.BackgroundTransparency = 1
 
+        local z = Instance.new("ImageLabel", x)
         z.Size = UDim2.new(0, 30, 0, 30) -- Kích thước nhỏ hơn
         z.ImageColor3 = Color3.fromRGB(38, 255, 0)
         z.Position = UDim2.new(0, 10, 0.5, -15) -- Điều chỉnh vị trí theo kích thước mới
@@ -645,16 +641,18 @@ local r = {
         pcall(t)
     end
 }
-pcall(r.createUi, "Twist", function()
-end)
-local D = d.LocalPlayer;
+
+pcall(r.createUi, "Twist", function() end)
+
+local D = d.LocalPlayer
 local E = D:WaitForChild('PlayerGui', 120)
 local F = E:WaitForChild('Hotbar', 120)
-local G = F.Hotbar.Vitals.Level.Visible;
+local G = F.Hotbar.Vitals.Level.Visible
 while not G do
     wait()
 end
-local H = d.LocalPlayer;
+
+local H = d.LocalPlayer
 local I = H.Character or H.CharacterAdded:Wait()
 local J = I:WaitForChild('HumanoidRootPart', 180)
 local K = I:WaitForChild("Humanoid") or I:FindFirstChildOfClass("Humanoid")
@@ -674,6 +672,7 @@ local X = require(k.Shared.Combat.Skillsets.Summoner)
 repeat
     wait()
 until k:WaitForChild('Profiles'):FindFirstChild(H.Name)
+
 local Y = {
     [1.1] = 2978696440,
     [1.2] = 4310464656,
@@ -703,6 +702,7 @@ local Y = {
     ["HalloweenHub"] = 5862277651,
     ["HolidayEventDungeon"] = 4526768588
 }
+
 local Z = {
     [1] = 5703353651,
     [2] = 6075085184,
@@ -710,6 +710,7 @@ local Z = {
     [4] = 10089970465,
     [5] = 10795158121
 }
+
 local _ = {
     [1] = 4310463616,
     [2] = 4310463940,
@@ -719,44 +720,49 @@ local _ = {
     [6] = 6075083204,
     [7] = 6847035264,
     [8] = 9944262922,
-    [9] = 10651517727
+    [9] = 10651517727,
+    [10] = 7499964980
 }
+
 local a1 = {'MoltenEgg', 'OceanEgg', 'CatEgg', 'AlligatorEgg', 'FairyEgg'}
 local a2 = {'SummonerSummonWeak', 'SummonerSummonStrong', 'CorruptedGreaterTree', 'DavyJones', 'BOSSHogRider',
             'BOSSAnubis', 'BOSSKrakenArm3-Arm#1', 'BOSSKrakenArm3-Arm#2', 'BOSSKrakenArm3-Arm#3',
             'BOSSKrakenArm3-Arm#4', 'BOSSKrakenArm3-Arm#5', 'BOSSKrakenArm3-Arm#6', 'BOSSKrakenArm3-Arm#7',
             'BOSSKrakenArm3-Arm#8'}
-local a3 = 0;
-local a4 = 9 / 64;
-local a5 = 0;
-local a6 = 0;
-local a7 = 0;
-local a8 = 360;
-local a9 = 5;
-local aa = 0;
-local ab = 0;
-local ac = 5 / 64;
-local ad = I.Properties.Class.Value;
+local a3 = 0
+local a4 = 9 / 64
+local a5 = 0
+local a6 = 0
+local a7 = 0
+local a8 = 360
+local a9 = 5
+local aa = 0
+local ab = 0
+local ac = 5 / 64
+local ad = I.Properties.Class.Value
 local ae = {
     ['DualWielder'] = {'DualWield1', 'DualWield2', 'DualWield3', 'DualWield4', 'DualWield5', 'DualWield6', 'DualWield7',
-                       'DualWield8', 'DualWield9', 'DualWield10'},
+                    'DualWield8', 'DualWield9', 'DualWield10'},
     ['Guardian'] = {'Guardian1', 'Guardian2', 'Guardian3', 'Guardian4'},
     ['Dragoon'] = {'Dragoon1', 'Dragoon2', 'Dragoon3', 'Dragoon4', 'Dragoon5', 'Dragoon6'},
     ['Demon'] = {'Demon1', 'Demon2', 'Demon3', 'Demon4', 'Demon5', 'Demon6', 'Demon7', 'Demon8', 'Demon9', 'Demon10',
-                 'Demon11', 'Demon12', 'Demon13', 'Demon14', 'Demon15', 'Demon16', 'Demon17', 'Demon18', 'Demon19',
-                 'Demon20', 'Demon21', 'Demon22', 'Demon23', 'Demon24', 'Demon25'},
+                'Demon11', 'Demon12', 'Demon13', 'Demon14', 'Demon15', 'Demon16', 'Demon17', 'Demon18', 'Demon19',
+                'Demon20', 'Demon21', 'Demon22', 'Demon23', 'Demon24', 'Demon25'},
     ['Warlord'] = {'Warlord1', 'Warlord2', 'Warlord3', 'Warlord4'}
 }
 local af = ae[ad]
-local isfile = isfile or is_file;
-local isfolder = isfolder or is_folder;
-local writefile = writefile or write_file;
-local makefolder = makefolder or make_folder or createfolder or create_folder;
+
+local isfile = isfile or is_file
+local isfolder = isfolder or is_folder
+local writefile = writefile or write_file
+local makefolder = makefolder or make_folder or createfolder or create_folder
+
 if makefolder then
     if not isfolder("WorldZero") then
         makefolder("WorldZero")
     end
 end
+
 local function ag(ah, ai)
     if isfile("WorldZero//" .. ah .. '.txt') then
         local aj = h:JSONDecode(readfile("WorldZero//" .. ah .. '.txt'))
@@ -768,9 +774,11 @@ local function ag(ah, ai)
         writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
     end
 end
+
 local function ak(ah, ai)
     writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
 end
+
 local al = {KillAura, PetSkill, AutoFarm, GetDrop, NoClip, InfJump, ReLoadOnHop, ReduceLag, RepeatRaid, NoCutScene,
             DelEgg, SellNonLegend, AutoSwitch, SellLegend, AiPing, MoLPass, MaxPerk, HPHalf, KlausDown}
 ag('WZ_Toggles', al)
@@ -2284,7 +2292,7 @@ local bL = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
-al.KillAura = true
+al.KillAura = false
 local KillAura = bF:Toggle({
     Text = "KillAura",
     TextSize = 22,
