@@ -349,7 +349,7 @@ getgenv().Common = true
 getgenv().Uncommon = true
 getgenv().Rare = true
 getgenv().Epic = true
-getgenv().Legendary = true
+getgenv().Legendary = false
 
 -- Định nghĩa hàm lấy danh sách đồ
 function getItemList()
