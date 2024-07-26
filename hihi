@@ -1,6 +1,7 @@
+
 wait(10)
 local function improveFPS()
-    local decalsyeeted = true -- zxczxcsszxczxczxc
+    local decalsyeeted = true -- zxcczxc
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -349,7 +350,7 @@ getgenv().Common = true
 getgenv().Uncommon = true
 getgenv().Rare = true
 getgenv().Epic = true
-getgenv().Legendary = false
+getgenv().Legendary = true
 
 -- Định nghĩa hàm lấy danh sách đồ
 function getItemList()
