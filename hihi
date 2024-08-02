@@ -2,7 +2,7 @@
 game:GetService("RunService"):Set3dRenderingEnabled(false)
 
 -- Đặt hẹn giờ để bật lại render 3D sau 15 phút (900 giây)
-delay(900, function()
+delay(5, function()
     game:GetService("RunService"):Set3dRenderingEnabled(true)
 end)
 
