@@ -1,10 +1,3 @@
--- Vô hiệu hóa render 3D
-game:GetService("RunService"):Set3dRenderingEnabled(false)
-
--- Đặt hẹn giờ để bật lại render 3D sau 15 phút (900 giây)
-delay(5, function()
-    game:GetService("RunService"):Set3dRenderingEnabled(true)
-end)
 
 wait(10)
 local function improveFPS()
@@ -101,7 +94,7 @@ improveFPS()
 local function runAfter7Minutes()
     print("runAfter7Minutes started")
     -- Chờ 7 phút (420 giây)
-    wait(420)
+    wait(4299990)
 
     -- Sau khi chờ 7 phút, thực hiện đoạn mã
     local args = {
@@ -175,9 +168,9 @@ end
 
 local function teleportIfInSpecificLobby()
     -- Kiểm tra và thực hiện dịch chuyển nếu người dùng ở 'Main menu' hoặc 'World 1'
-    if game.PlaceId == 2727067538 then
+    if game.PlaceId == 27270675338 then
         warn("Teleporting from Main Menu to Hub 13")
-        local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
+        local placeId = 43104263616  -- ID của nơi bạn muốn chuyển đến
         TeleportService:Teleport(placeId)
     elseif game.PlaceId == 4310463616 then
         warn("Teleporting from World 1 to Hub 34")
@@ -357,7 +350,7 @@ getgenv().Common = true
 getgenv().Uncommon = true
 getgenv().Rare = true
 getgenv().Epic = true
-getgenv().Legendary = true
+getgenv().Legendary = false
 
 -- Định nghĩa hàm lấy danh sách đồ
 function getItemList()
