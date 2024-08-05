@@ -23,7 +23,7 @@ toggleButton.Text = "Tắt Render 3D"
 toggleButton.Parent = frame
 
 -- Biến để theo dõi trạng thái render 3D
-local is3DRenderingEnabled = true
+local is3DRenderingEnabled = false
 
 -- Hàm bật/tắt render 3D
 local function toggleRendering()
