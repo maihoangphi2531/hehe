@@ -16,8 +16,8 @@ frame.Parent = screenGui
 
 -- Tạo nút bật/tắt
 local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(1, -20, 0.5, -10)
-toggleButton.Position = UDim2.new(0.5, -90, 0.5, -40)
+toggleButton.Size = UDim2.new(0, 180, 0, 40) -- Kích thước nhỏ hơn
+toggleButton.Position = UDim2.new(0.5, -90, 0.5, -20)
 toggleButton.BackgroundColor3 = Color3.new(0.8, 0.8, 0.8)
 toggleButton.Text = "Tắt Render 3D"
 toggleButton.Parent = frame
@@ -44,6 +44,10 @@ end
 
 -- Kết nối hàm toggleRendering với sự kiện Click của nút
 toggleButton.MouseButton1Click:Connect(toggleRendering)
+
+-- Đảm bảo render 3D được bật sẵn khi vào game
+RunService:Set3dRenderingEnabled(true)
+
 
 
 local function improveFPS()
