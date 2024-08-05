@@ -1,3 +1,49 @@
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Tạo ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = playerGui
+
+-- Tạo khung (frame)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 100)
+frame.Position = UDim2.new(0.5, -100, 0.5, -50)
+frame.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+frame.Parent = screenGui
+
+-- Tạo nút bật/tắt
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(1, -20, 0.5, -10)
+toggleButton.Position = UDim2.new(0.5, -90, 0.5, -40)
+toggleButton.BackgroundColor3 = Color3.new(0.8, 0.8, 0.8)
+toggleButton.Text = "Tắt Render 3D"
+toggleButton.Parent = frame
+
+-- Biến để theo dõi trạng thái render 3D
+local is3DRenderingEnabled = true
+
+-- Hàm bật/tắt render 3D
+local function toggleRendering()
+    is3DRenderingEnabled = not is3DRenderingEnabled
+    RunService:Set3dRenderingEnabled(is3DRenderingEnabled)
+    if is3DRenderingEnabled then
+        toggleButton.Text = "Tắt Render 3D"
+    else
+        toggleButton.Text = "Bật Render 3D"
+        -- Đặt hẹn giờ để bật lại render 3D sau 15 phút (900 giây)
+        delay(900, function()
+            RunService:Set3dRenderingEnabled(true)
+            toggleButton.Text = "Tắt Render 3D"
+            is3DRenderingEnabled = true
+        end)
+    end
+end
+
+-- Kết nối hàm toggleRendering với sự kiện Click của nút
+toggleButton.MouseButton1Click:Connect(toggleRendering)
 
 
 local function improveFPS()
@@ -94,7 +140,7 @@ improveFPS()
 local function runAfter7Minutes()
     print("runAfter7Minutes started")
     -- Chờ 7 phút (420 giây)
-    wait(4299990)
+    wait(420)
 
     -- Sau khi chờ 7 phút, thực hiện đoạn mã
     local args = {
@@ -168,9 +214,9 @@ end
 
 local function teleportIfInSpecificLobby()
     -- Kiểm tra và thực hiện dịch chuyển nếu người dùng ở 'Main menu' hoặc 'World 1'
-    if game.PlaceId == 27270675338 then
+    if game.PlaceId == 2727067538 then
         warn("Teleporting from Main Menu to Hub 13")
-        local placeId = 43104263616  -- ID của nơi bạn muốn chuyển đến
+        local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
         TeleportService:Teleport(placeId)
     elseif game.PlaceId == 4310463616 then
         warn("Teleporting from World 1 to Hub 34")
@@ -560,7 +606,7 @@ end)
 
 local r = {
     ["createUi"] = function(s, t)
-        local u = {"MAI HOÀNG PHI", "🍊🍊🍊🍊🍊🍊🍊", "twist\nWorld Zero"}
+        local u = {"MAI HOÀNG PHI", "🍊🍊🍊🍊🍊🍊🍊", "AnyaTeam"}
         local v = {{
             ["Image"] = "rbxassetid://3926305904",
             ["RectOffset"] = Vector2.new(204, 844),
