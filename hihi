@@ -46,7 +46,7 @@ end
 toggleButton.MouseButton1Click:Connect(toggleRendering)
 
 -- Đảm bảo render 3D được bật sẵn khi vào game
-RunService:Set3dRenderingEnabled(false)
+RunService:Set3dRenderingEnabled(true)
 
 
 
