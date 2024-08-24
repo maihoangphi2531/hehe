@@ -1,7 +1,7 @@
 wait(10)
 
 local function improveFPS()
-    local decalsyeeted = true -- zxczxcsszxczxczxcax
+    local decalsyeeted = true -- zxczxcsszxczxczxc
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -161,48 +161,35 @@ local lobbyId = {
     [6847035264] = 'World 7'
 }
 
-local TeleportService = game:GetService("TeleportService")
-
-local function runImmediately()
-    print("runImmediately started")
-
-    -- Thực hiện đoạn mã ngay lập tức
-    local args = {
-        [1] = 34
-    }
-    local replicatedStorage = game:GetService("ReplicatedStorage")
-    local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
-    local startRaidEvent = teleportService:WaitForChild("StartRaid")
-    
-    if startRaidEvent then
-        startRaidEvent:FireServer(unpack(args))
-        print("StartRaid event fired immediately.")
-    else
-        warn("StartRaid event not found!")
-    end
+local function isGameLoaded()
+    -- Kiểm tra nếu game đã tải xong
+    return game:IsLoaded()
 end
 
 local function teleportIfInSpecificLobby()
-    -- Liên tục kiểm tra nếu game đã tải xong
-    while not game:IsLoaded() do
-        wait(1)  -- Đợi 1 giây và kiểm tra lại
-    end
-
-    -- Kiểm tra xem người chơi có đang ở Main Menu hay World 1 không
+    -- Kiểm tra và thực hiện dịch chuyển nếu người dùng ở 'Main menu' hoặc 'World 1'
     if game.PlaceId == 2727067538 then
         warn("Teleporting from Main Menu to Hub 13")
-        local placeId = 4310463616
+        local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
         TeleportService:Teleport(placeId)
     elseif game.PlaceId == 4310463616 then
         warn("Teleporting from World 1 to Hub 34")
-        task.spawn(runImmediately)  -- Gọi hàm runImmediately khi đã ở World 1
+        local args = {
+            [1] = 34
+        }
+
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
+        local startRaidEvent = teleportService:WaitForChild("StartRaid")
+
+        if startRaidEvent then
+            startRaidEvent:FireServer(unpack(args))
+            print("StartRaid event fired.")
+        else
+            warn("StartRaid event not found!")
+        end
     end
 end
-
--- Bắt đầu kiểm tra và thực hiện teleport
-task.spawn(teleportIfInSpecificLobby)
-
-
 
 function lobbyCheck()
     for i,v in pairs(lobbyId) do
