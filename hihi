@@ -1,7 +1,7 @@
 wait(10)
 
 local function improveFPS()
-    local decalsyeeted = true -- zxczxcsszxczxczxc
+    local decalsyeeted = true -- zxczxzczxc
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -179,8 +179,8 @@ local function teleportIfInSpecificLobby()
         }
 
         local replicatedStorage = game:GetService("ReplicatedStorage")
-        local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
-        local startRaidEvent = teleportService:WaitForChild("StartRaid")
+        local teleportService = replicatedStorage:WaitForChild("Shared", 5):WaitForChild("Teleport", 5)
+        local startRaidEvent = teleportService:WaitForChild("StartRaid", 5)
 
         if startRaidEvent then
             startRaidEvent:FireServer(unpack(args))
@@ -190,6 +190,7 @@ local function teleportIfInSpecificLobby()
         end
     end
 end
+
 
 function lobbyCheck()
     for i,v in pairs(lobbyId) do
