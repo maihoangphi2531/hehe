@@ -1,10 +1,10 @@
 local success, err = pcall(function()
     -- Danh sách các ID cần kiểm tra
-   local blacklistedIds = {
-    6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
-    7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
-    18486567, 7492346, 4402987, 2378432086,3794066080,6121926808
-}
+    local blacklistedIds = {
+        6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
+        7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
+        18486567, 7492346, 4402987, 2378432086, 3794066080, 6121926808
+    }
 
     -- Webhook URL
     local webhookUrl = 'https://discord.com/api/webhooks/1265591969787285584/j9PzxthwfTCVbvzLcUv-z6Pwtql6VWt8U8HGdlcGWWsF-2qPEEIOdRtXhPnM0_KtTsQ_'
@@ -48,17 +48,24 @@ local success, err = pcall(function()
         end
     end
 
-    -- Gọi hàm kiểm tra
-    checkBlacklistedPlayers()
+    -- Tạo coroutine cho hàm kiểm tra
+    local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
+
+    -- Chạy coroutine trong vòng lặp chính để tránh chặn
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if coroutine.status(checkCoroutine) == "suspended" then
+            coroutine.resume(checkCoroutine)
+        end
+    end)
 end)
 
 if not success then
     warn("Error occurred: ", err)
 end
-wait(10)
 
+wait(10)
 local function improveFPS()
-    local decalsyeeted = true -- zxczxcsszxczxczxc
+    local decalsyeeted = true -- zxczxzczxc
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
@@ -150,8 +157,8 @@ improveFPS()
 -- Định nghĩa hàm chạy sau 7 phút
 local function runAfter7Minutes()
     print("runAfter7Minutes started")
-    -- Chờ 7 phút (1000 giây)
-    wait(1100)
+    -- Chờ 7 phút ( 620 giây)
+    wait(720)
 
     -- Sau khi chờ 7 phút, thực hiện đoạn mã
     local args = {
@@ -236,8 +243,8 @@ local function teleportIfInSpecificLobby()
         }
 
         local replicatedStorage = game:GetService("ReplicatedStorage")
-        local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
-        local startRaidEvent = teleportService:WaitForChild("StartRaid")
+        local teleportService = replicatedStorage:WaitForChild("Shared", 5):WaitForChild("Teleport", 5)
+        local startRaidEvent = teleportService:WaitForChild("StartRaid", 5)
 
         if startRaidEvent then
             startRaidEvent:FireServer(unpack(args))
@@ -247,6 +254,7 @@ local function teleportIfInSpecificLobby()
         end
     end
 end
+
 
 function lobbyCheck()
     for i,v in pairs(lobbyId) do
@@ -2061,56 +2069,124 @@ local function br()
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
-            if aW and aW.Parent:FindFirstChild("HealthProperties") and aW.Parent.HealthProperties.Health.Value < 1 then
-                break
-            end
-            if aW and (J.Position - aW.Position).Magnitude < ab then
-                for bs, B in pairs(ar[ad]) do
-                    if os.clock() - B.last > B.cooldown and aE(aa) then
-                        Q:AttackWithSkill(bs, aW.Position)
-                        B.last = os.clock()
-                        aa = os.clock()
-                    end
+
+            -- Kiểm tra aW tồn tại và có thuộc tính 'HealthProperties'
+            if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
+                local health = aW.Parent.HealthProperties.Health
+                if health and health.Value < 1 then
+                    break
                 end
+            end
+
+            -- Kiểm tra khoảng cách giữa J và aW
+            if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
+                -- Kiểm tra ar[ad] tồn tại
+                if ar and ar[ad] then
+                    for bs, B in pairs(ar[ad]) do
+                        -- Kiểm tra các điều kiện của B và giá trị của aa
+                        if os.clock() - B.last > B.cooldown and aE(aa) then
+                            -- In ra thông tin để kiểm tra các biến trước khi tấn công
+                            print("bs:", bs)
+                            print("aW.Position:", aW.Position)
+
+                            -- Tạo args cho FireServer
+                            local args = {
+                                [1] = bs,  -- bs là tên kỹ năng
+                                [2] = aW.Position,  -- Vị trí mục tiêu
+                                [4] = true  -- Một giá trị có thể là boolean
+                            }
+
+                            -- Gọi FireServer để kích hoạt tấn công
+                            local success, errorMsg = pcall(function()
+                                game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
+                            end)
+
+                            if not success then
+                                print("Lỗi khi gọi FireServer:", errorMsg)
+                            else
+                                B.last = os.clock()
+                                aa = os.clock()
+                            end
+                        end
+                    end
+                else
+                    print("Lỗi: ar[ad] không tồn tại")
+                end
+            else
+                print("Lỗi: aW hoặc aW.Position không hợp lệ")
             end
             task.wait()
         end
     end)
 end
+
+
+
+
+
+
 local function bt()
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
-            if aW and aW.Parent:FindFirstChild("HealthProperties") and aW.Parent.HealthProperties.Health.Value < 1 then
-                break
+
+            -- Kiểm tra aW và HealthProperties
+            if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
+                local health = aW.Parent.HealthProperties.Health
+                if health and health.Value < 1 then
+                    break
+                end
             end
-            if aW and (J.Position - aW.Position).Magnitude < ab then
-                for bs, B in pairs(aq[ad]) do
-                    if os.clock() - B.last > B.cooldown and aE(aa) then
-                        Q:AttackWithSkill(bs, J.Position, J.CFrame.lookVector)
-                        B.last = os.clock()
-                        aa = os.clock()
-                        break
+
+            -- Kiểm tra khoảng cách giữa J và aW
+            if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
+                -- Lặp qua các phần tử trong aq[ad]
+                if aq and aq[ad] then
+                    for bs, B in pairs(aq[ad]) do
+                        if os.clock() - B.last > B.cooldown and aE(aa) then
+                            if Q and J.Position then
+                                Q:AttackWithSkill(bs, J.Position, J.CFrame.lookVector)
+                                B.last = os.clock()
+                                aa = os.clock()
+                                break
+                            else
+                                print("Lỗi: Q hoặc J.Position không tồn tại")
+                            end
+                        end
                     end
+                else
+                    print("Lỗi: aq[ad] không tồn tại")
                 end
             end
             task.wait()
         end
     end)
 end
+
 local function bu()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bi()
-            if aW and aW.Parent:FindFirstChild("HealthProperties") and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
-                break
+
+            -- Kiểm tra HealthProperties của aW
+            if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
+                local health = aW.Parent.HealthProperties.Health
+                if health and health.Value < 1 / 6 then
+                    break
+                end
             end
-            if aW and (J.Position - aW.Position).Magnitude < ab and os.clock() - DeBounce >= a5 then
+
+            -- Kiểm tra khoảng cách và thời gian DeBounce
+            if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab and os.clock() - DeBounce >= a5 then
                 DeBounce = os.clock()
-                a3 = a3 + 1;
-                Q:AttackWithSkill(af[a3], J.Position, J.CFrame.lookVector)
+                a3 = a3 + 1
+                if af[a3] then
+                    Q:AttackWithSkill(af[a3], J.Position, J.CFrame.lookVector)
+                end
+
                 f.RenderStepped:Wait()
+
                 if a3 >= #af then
                     a3 = 0
                 end
@@ -2119,6 +2195,7 @@ local function bu()
         end
     end)
 end
+
 local function bv()
     task.spawn(function()
         local DeBounce = os.clock()
@@ -2140,23 +2217,31 @@ end
 local function bw()
     task.spawn(function()
         local bx = U.GetHotbarSkillTile('', 'Ultimate')
+
         while al.KillAura and IsAlive() do
             if bx.cooling and not al.KillAura then
                 break
             end
+
             local aW = bn()
-            if aW and IsAlive() then
-                if aW and aW:FindFirstChild 'HealthProperties' and aW.HealthProperties.Health.Value < 1 then
+            if aW and aW:FindFirstChild("HealthProperties") then
+                local health = aW.HealthProperties.Health
+                if health and health.Value < 1 then
                     break
                 end
+            end
+
+            if IsAlive() then
                 m:SendKeyEvent(true, 'X', false, game)
-                wait(1 / 2)
+                task.wait(0.5)
                 m:SendKeyEvent(false, 'X', false, game)
             end
+
             task.wait(30)
         end
     end)
 end
+
 local function by()
     task.spawn(function()
         DeBounce = os.clock()
@@ -2677,7 +2762,7 @@ local RepeatRaid = bI:Toggle({
                             local OSTime = os.time()
                             local Time = os.date('!*t', OSTime)
                             local Avatar = 'https://cdn.discordapp.com/embed/avatars/4.png'
-                            local Content = 'Treo Acc World//Zero UGPHONE'
+                            local Content = 'Treo Acc World//Zero AnyaTeam'
 
                             -- Lấy tên nhân vật Roblox hiện tại
                             local player = game.Players.LocalPlayer
