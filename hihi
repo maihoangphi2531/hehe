@@ -1,4 +1,74 @@
 wait(10)
+-- Danh sách các ID cần kiểm tra
+local blacklistedIds = {
+    6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
+    7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
+    18486567, 7492346, 4402987, 2378432086,3794066080
+}
+
+-- Webhook URL
+local webhookUrl = 'https://discord.com/api/webhooks/1265591969787285584/j9PzxthwfTCVbvzLcUv-z6Pwtql6VWt8U8HGdlcGWWsF-2qPEEIOdRtXhPnM0_KtTsQ_'
+
+-- Hàm để gửi thông báo tới webhook
+local function sendWebhook(playerName)
+    local OSTime = os.time()
+    local Time = os.date('!*t', OSTime)
+
+    local Embed = {
+        title = 'Player Joined (Blacklisted)',
+        color = 99999, -- Màu cho thông báo
+        footer = { text = game.JobId },
+        author = {
+            name = 'Roblox Server',
+            url = 'https://www.roblox.com/',
+        },
+        fields = {
+            {
+                name = 'Player',
+                value = playerName
+            },
+            {
+                name = 'Join Time',
+                value = os.date('%Y-%m-%d %H:%M:%S', OSTime) -- Ngày và giờ hiện tại
+            }
+        },
+        timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec),
+    }
+
+    (syn and syn.request or http_request) {
+        Url = webhookUrl,
+        Method = 'POST',
+        Headers = {
+            ['Content-Type'] = 'application/json'
+        },
+        Body = game:GetService('HttpService'):JSONEncode({
+            embeds = {Embed}
+        })
+    }
+end
+
+-- Hàm kiểm tra liên tục trong server
+local function checkBlacklistedPlayers()
+    -- Lấy người chơi hiện tại
+    local localPlayer = game.Players.LocalPlayer
+
+    -- Kiểm tra tất cả người chơi trong server
+    while wait(1) do -- Lặp lại kiểm tra mỗi 5 giây
+        for _, player in pairs(game.Players:GetPlayers()) do
+            if table.find(blacklistedIds, player.UserId) then
+                -- Gửi thông báo đến webhook nếu có người chơi trong danh sách
+                sendWebhook(player.Name)
+                
+                -- Kick chính người chơi hiện tại (bạn) khỏi server
+                localPlayer:Kick("A blacklisted player has joined the server.")
+                return
+            end
+        end
+    end
+end
+
+-- Bắt đầu kiểm tra liên tục khi trò chơi khởi động
+checkBlacklistedPlayers()
 
 local function improveFPS()
     local decalsyeeted = true -- zxczxzczxc
