@@ -1,4 +1,4 @@
-wait(10)
+
 local success, err = pcall(function()
     -- Danh sách các ID cần kiểm tra
    local blacklistedIds = {
@@ -56,7 +56,7 @@ end)
 if not success then
     warn("Error occurred: ", err)
 end
-
+wait(10)
 local function improveFPS()
     local decalsyeeted = true -- zxczxzczxc
     local game = game
