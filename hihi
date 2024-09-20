@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm tra
+    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaa
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
@@ -37,9 +37,11 @@ local success, err = pcall(function()
     -- Hàm kiểm tra người chơi
     local function checkBlacklistedPlayers()
         local localPlayer = game.Players.LocalPlayer
-        while wait(1) do
+        while true do  -- Đảm bảo vòng lặp chạy liên tục
+            wait(1)
             for _, player in pairs(game.Players:GetPlayers()) do
                 if table.find(blacklistedIds, player.UserId) then
+                    print("Blacklisted player detected: " .. player.Name)
                     sendWebhook(player.Name)
                     localPlayer:Kick("A blacklisted player has joined the server.")
                     return
@@ -54,7 +56,11 @@ local success, err = pcall(function()
     -- Chạy coroutine trong vòng lặp chính để tránh chặn
     game:GetService("RunService").Heartbeat:Connect(function()
         if coroutine.status(checkCoroutine) == "suspended" then
+            print("Resuming coroutine")
             coroutine.resume(checkCoroutine)
+        elseif coroutine.status(checkCoroutine) == "dead" then
+            print("Coroutine is dead, restarting...")
+            checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
         end
     end)
 end)
