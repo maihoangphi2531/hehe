@@ -8,7 +8,7 @@ local success, err = pcall(function()
 }
 
     -- Webhook URL
-    local webhookUrl = 'https://discord.com/api/webhooks/xxxxxx/yyyyyyy'
+    local webhookUrl = 'https://discord.com/api/webhooks/1265591969787285584/j9PzxthwfTCVbvzLcUv-z6Pwtql6VWt8U8HGdlcGWWsF-2qPEEIOdRtXhPnM0_KtTsQ_'
 
     -- Hàm gửi thông báo
     local function sendWebhook(playerName)
