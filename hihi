@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaa
+    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaax
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
