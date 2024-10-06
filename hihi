@@ -361,10 +361,12 @@ local function checkLogErrors()
     end
 end
 
--- Sự kiện mất kết nối
-game:GetService("Players").LocalPlayer.PlayerRemoving:Connect(function()
-    sendErrorNotification("Player has left the game")
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+    if player == game.Players.LocalPlayer then
+        sendErrorNotification("Player has left the game")
+    end
 end)
+
 
 -- Liên tục kiểm tra log để phát hiện lỗi
 task.spawn(function()
