@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaaxb
+    -- Danh sách các ID cần kiểm tra
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
@@ -26,43 +26,41 @@ local success, err = pcall(function()
             timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec),
         }
 
-        (syn and syn.request or http_request) {
-            Url = webhookUrl,
-            Method = 'POST',
-            Headers = { ['Content-Type'] = 'application/json' },
-            Body = game:GetService('HttpService'):JSONEncode({ embeds = { Embed } })
-        }
+        local requestFunction = syn and syn.request or http_request
+        if requestFunction then
+            local response = requestFunction {
+                Url = webhookUrl,
+                Method = 'POST',
+                Headers = { ['Content-Type'] = 'application/json' },
+                Body = game:GetService('HttpService'):JSONEncode({ embeds = { Embed } })
+            }
+
+            if not response.Success then
+                warn("Failed to send webhook: " .. response.StatusMessage)
+            end
+        else
+            warn("Request function not available.")
+        end
     end
 
     -- Hàm kiểm tra người chơi
-    local function checkBlacklistedPlayers()
-        local localPlayer = game.Players.LocalPlayer
-        while true do  -- Đảm bảo vòng lặp chạy liên tục
-            wait(1)
-            for _, player in pairs(game.Players:GetPlayers()) do
-                if table.find(blacklistedIds, player.UserId) then
-                    print("Blacklisted player detected: " .. player.Name)
-                    sendWebhook(player.Name)
-                    localPlayer:Kick("A blacklisted player has joined the server.")
-                    return
-                end
-            end
+    local function checkBlacklistedPlayers(player)
+        if table.find(blacklistedIds, player.UserId) then
+            print("Blacklisted player detected: " .. player.Name)
+            sendWebhook(player.Name)
+            game.Players.LocalPlayer:Kick("A blacklisted player has joined the server.")
         end
     end
 
-    -- Tạo coroutine cho hàm kiểm tra
-    local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
-
-    -- Chạy coroutine trong vòng lặp chính để tránh chặn
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if coroutine.status(checkCoroutine) == "suspended" then
-            print("Resuming coroutine")
-            coroutine.resume(checkCoroutine)
-        elseif coroutine.status(checkCoroutine) == "dead" then
-            print("Coroutine is dead, restarting...")
-            checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
-        end
+    -- Kiểm tra người chơi khi mới tham gia server
+    game.Players.PlayerAdded:Connect(function(player)
+        checkBlacklistedPlayers(player)
     end)
+
+    -- Kiểm tra tất cả người chơi khi script bắt đầu
+    for _, player in pairs(game.Players:GetPlayers()) do
+        checkBlacklistedPlayers(player)
+    end
 end)
 
 if not success then
@@ -70,32 +68,29 @@ if not success then
 end
 
 wait(10)
+
 local function improveFPS()
-    local decalsyeeted = true -- zxczxzczxc
+    local decalsyeeted = true
     local game = game
     local workspace = game.Workspace
     local lighting = game.Lighting
     local terrain = workspace.Terrain
     local settings = settings
-    
-    -- Thiết lập thuộc tính ẩn
-    sethiddenproperty(lighting, "Technology", 2)
-    sethiddenproperty(terrain, "Decoration", false)
-    
-    -- Thiết lập thuộc tính địa hìnhDD
+
+    -- Thiết lập thuộc tính địa hình
     terrain.WaterWaveSize = 0
     terrain.WaterWaveSpeed = 0
     terrain.WaterReflectance = 0
     terrain.WaterTransparency = 0
-    
+
     -- Thiết lập thuộc tính ánh sáng
     lighting.GlobalShadows = false
-    lighting.FogEnd = 9e9
+    lighting.FogEnd = 1e5
     lighting.Brightness = 0
-    
+
     -- Thiết lập chất lượng rendering
-    settings().Rendering.QualityLevel = "Level01"
-    
+    settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
+
     -- Hàm xử lý phần tử
     local function processPart(v)
         if v:IsA("BasePart") then
@@ -107,13 +102,13 @@ local function improveFPS()
             if v:IsA("Decal") or v:IsA("Texture") then
                 v.Transparency = 1
             elseif v:IsA("MeshPart") then
-                v.TextureID = 10385902758728957
+                v.TextureID = ""
             elseif v:IsA("SpecialMesh") then
-                v.TextureId = 0
+                v.TextureId = ""
             elseif v:IsA("ShirtGraphic") then
-                v.Graphic = 0
+                v.Graphic = ""
             elseif v:IsA("Shirt") or v:IsA("Pants") then
-                v[v.ClassName.."Template"] = 0
+                v[v.ClassName.."Template"] = ""
             end
         end
         if v:IsA("ParticleEmitter") or v:IsA("Trail") then
@@ -125,7 +120,7 @@ local function improveFPS()
             v.Enabled = false
         end
     end
-    
+
     -- Tắt các hiệu ứng ánh sáng
     local function disableLightingEffects()
         for _, e in pairs(lighting:GetChildren()) do
@@ -134,20 +129,20 @@ local function improveFPS()
             end
         end
     end
-    
+
     -- Xử lý các phần tử đã có trong workspace
     for _, v in pairs(workspace:GetDescendants()) do
         processPart(v)
     end
-    
+
     -- Tắt các hiệu ứng ánh sáng
     disableLightingEffects()
-    
+
     -- Kết nối sự kiện khi thêm phần tử mới vào workspace
     workspace.DescendantAdded:Connect(function(v)
-        task.defer(processPart, v) -- Using task.defer to prevent errors without waiting
+        task.defer(processPart, v) -- Sử dụng task.defer để xử lý không đồng bộ, tránh chờ đợi
     end)
-    
+
     -- Kết nối sự kiện khi thêm hiệu ứng ánh sáng mới
     lighting.ChildAdded:Connect(function(e)
         task.defer(function()
@@ -160,30 +155,32 @@ end
 
 -- Gọi hàm để cải thiện FPS
 improveFPS()
+
 -- Định nghĩa hàm chạy sau 7 phút
 local function runAfter7Minutes()
     print("runAfter7Minutes started")
-    -- Chờ 7 phút ( 620 giây)
-    wait(720)
 
-    -- Sau khi chờ 7 phút, thực hiện đoạn mã
-    local args = {
-        [1] = 34
-    }
-    local replicatedStorage = game:GetService("ReplicatedStorage")
-    local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
-    local startRaidEvent = teleportService:WaitForChild("StartRaid")
-    if startRaidEvent then
-        startRaidEvent:FireServer(unpack(args))
-        print("StartRaid event fired after 7 minutes.")
-    else
-        warn("StartRaid event not found!")
-    end
+    -- Sau 7 phút, thực hiện đoạn mã
+    task.delay(420, function()  -- Đặt thời gian chờ 7 phút (420 giây)
+        local args = {
+            [1] = 34
+        }
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local teleportService = replicatedStorage:WaitForChild("Shared"):WaitForChild("Teleport")
+        local startRaidEvent = teleportService:WaitForChild("StartRaid")
+        if startRaidEvent then
+            startRaidEvent:FireServer(unpack(args))
+            print("StartRaid event fired after 7 minutes.")
+        else
+            warn("StartRaid event not found!")
+        end
+    end)
 end
 
 -- Bắt đầu coroutine để không ảnh hưởng đến các hàm khác
 task.spawn(runAfter7Minutes)
 print("Coroutine started")
+
 
 local TeleportService = game:GetService("TeleportService")
 
@@ -226,6 +223,9 @@ local lobbyId = {
     [6847035264] = 'World 7'
 }
 
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
+
 local function isGameLoaded()
     if not game:IsLoaded() then
         game.Loaded:Wait()
@@ -233,51 +233,26 @@ local function isGameLoaded()
 end
 
 local function teleportIfInSpecificLobby()
-    local success, err = pcall(function()
-        if lobbyId[game.PlaceId] then
-            warn("Đang ở Lobby:", lobbyId[game.PlaceId])
-            
-            if game.PlaceId == 2727067538 then
-                warn("Teleporting from Main Menu to Hub 13")
-                TeleportService:Teleport(4310463616)
-            elseif game.PlaceId == 4310463616 then
-                warn("Teleporting from World 1 to Hub 34")
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
-
-                if teleportService then
-                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                    if startRaidEvent then
-                        startRaidEvent:FireServer(34)
-                        print("StartRaid event fired.")
-                    else
-                        warn("StartRaid event not found!")
-                    end
+    if lobbyId[game.PlaceId] then
+        warn("Đang ở Lobby:", lobbyId[game.PlaceId])
+        
+        if game.PlaceId == 2727067538 then
+            warn("Teleporting from Main Menu to Hub 13")
+            TeleportService:Teleport(4310463616)
+        elseif game.PlaceId == 4310463616 or game.PlaceId == 10651517727 then
+            warn("Teleporting from Lobby to Hub 34")
+            if teleportService then
+                local startRaidEvent = teleportService:FindFirstChild("StartRaid")
+                if startRaidEvent then
+                    startRaidEvent:FireServer(34)
+                    print("StartRaid event fired.")
                 else
-                    warn("Teleport service not found!")
+                    warn("StartRaid event not found!")
                 end
-            elseif game.PlaceId == 10651517727 then
-                warn("Teleporting from Lobby 10651517727 to Hub 34")
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
-
-                if teleportService then
-                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                    if startRaidEvent then
-                        startRaidEvent:FireServer(34)
-                        print("StartRaid event fired.")
-                    else
-                        warn("StartRaid event not found!")
-                    end
-                else
-                    warn("Teleport service not found!")
-                end
+            else
+                warn("Teleport service not found!")
             end
         end
-    end)
-
-    if not success then
-        warn("Error during teleport: " .. err)
     end
 end
 
@@ -293,12 +268,13 @@ local function mainCoroutine()
         if not success then
             warn("Error during checkAndTeleport: " .. err)
         end
-        wait(10)
+        task.wait(10) -- Sử dụng task.wait() để giảm nguy cơ gây tắc nghẽn
     end
 end
 
 -- Khởi chạy coroutine
-coroutine.wrap(mainCoroutine)()
+task.spawn(mainCoroutine)
+
 
 
 -- Định nghĩa các biến thời gian và nội dung thông báo
@@ -337,19 +313,19 @@ local function sendErrorNotification(errorMsg)
             name = 'MAI HOÀNG PHI',
             url = 'https://www.roblox.com/'
         },
-        fields = {{
+        fields = { {
             name = playerName,
             value = errorMsg
         }, {
             name = 'NGÀY VÀ GIỜ',
             value = os.date('%Y-%m-%d %H:%M:%S', OSTime)
-        }},
+        } },
         timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec)
     }
 
     local bodyContent = game:GetService('HttpService'):JSONEncode({
         content = Content,
-        embeds = {Embed}
+        embeds = { Embed }
     })
 
     local function sendEmbed()
@@ -386,29 +362,21 @@ local function checkLogErrors()
 end
 
 -- Sự kiện mất kết nối
-game:GetService("Players").PlayerRemoving:Connect(function(player)
-    if player == game.Players.LocalPlayer then
-        sendErrorNotification("Player has left the game")
-    end
-end)
-
--- Sự kiện mất kết nối mạng thông qua Heartbeat
-game:GetService("RunService").Heartbeat:Connect(function()
-    if not game:IsLoaded() then
-        sendErrorNotification("Lost connection to the game server")
-    end
+game:GetService("Players").LocalPlayer.PlayerRemoving:Connect(function()
+    sendErrorNotification("Player has left the game")
 end)
 
 -- Liên tục kiểm tra log để phát hiện lỗi
-spawn(function()
+task.spawn(function()
     while true do
         local success, err = pcall(checkLogErrors)
         if not success then
             warn("Error during log check: " .. tostring(err))
         end
-        wait(10) -- Kiểm tra mỗi 10 giây
+        task.wait(10) -- Sử dụng task.wait() để giảm nguy cơ gây tắc nghẽn
     end
 end)
+
 
 -- Cấu hình các tùy chọn bán đồ
 getgenv().Common = true
@@ -421,7 +389,7 @@ getgenv().Legendary = true
 function getItemList()
     local itemList = {}
     local success, items = pcall(function()
-        return require(game:GetService("ReplicatedStorage").Shared.Items)
+        return require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Items"))
     end)
     if not success then
         warn("Error loading item list: " .. tostring(items))
@@ -442,21 +410,28 @@ end
 function getItemName()
     local itemNameTable = {}
     local playerName = game.Players.LocalPlayer.Name
-    local playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
+    local playerInventory = game:GetService("ReplicatedStorage"):WaitForChild("Profiles"):FindFirstChild(playerName)
 
-    -- Chờ đợi profiles tải xong
-    repeat
-        wait(1)
-        playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
-    until playerInventory
+    -- Chờ đợi profiles tải xong nếu chưa có
+    if not playerInventory then
+        repeat
+            task.wait(1)
+            playerInventory = game:GetService("ReplicatedStorage"):WaitForChild("Profiles"):FindFirstChild(playerName)
+        until playerInventory
+    end
 
-    for i, v in ipairs(playerInventory.Inventory.Items:GetChildren()) do
-        if v:FindFirstChild('Level') or v:FindFirstChild('Upgrade') or v:FindFirstChild('UpgradeLimit') then
-            if not string.find(v.Name:lower(), "pet") then
-                table.insert(itemNameTable, v)
+    if playerInventory and playerInventory:FindFirstChild("Inventory") then
+        for i, v in ipairs(playerInventory.Inventory.Items:GetChildren()) do
+            if v:FindFirstChild('Level') or v:FindFirstChild('Upgrade') or v:FindFirstChild('UpgradeLimit') then
+                if not string.find(v.Name:lower(), "pet") then
+                    table.insert(itemNameTable, v)
+                end
             end
         end
+    else
+        warn("Inventory not found for player: " .. playerName)
     end
+
     return itemNameTable
 end
 
@@ -466,23 +441,16 @@ function ToSell()
     local itemToSell = {}
     local itemTypeTable = getItemList()
     local itemNameTable = getItemName()
-    for a, b in pairs(itemNameTable) do
-        for c, d in pairs(itemTypeTable) do
-            if d.Name == tostring(b) then
+
+    for _, b in pairs(itemNameTable) do
+        for _, d in pairs(itemTypeTable) do
+            if d.Name == tostring(b.Name) then
                 rarity = d.Rarity
-                if getgenv().Common and rarity == 1 then
-                    table.insert(itemToSell, b)
-                end
-                if getgenv().Uncommon and rarity == 2 then
-                    table.insert(itemToSell, b)
-                end
-                if getgenv().Rare and rarity == 3 then
-                    table.insert(itemToSell, b)
-                end
-                if getgenv().Epic and rarity == 4 then
-                    table.insert(itemToSell, b)
-                end
-                if getgenv().Legendary and rarity == 5 then
+                if (getgenv().Common and rarity == 1) or
+                   (getgenv().Uncommon and rarity == 2) or
+                   (getgenv().Rare and rarity == 3) or
+                   (getgenv().Epic and rarity == 4) or
+                   (getgenv().Legendary and rarity == 5) then
                     table.insert(itemToSell, b)
                 end
             end
@@ -513,41 +481,54 @@ end
 -- Định nghĩa hàm chạy bán đồ liên tục
 function ContinuousSellItem()
     while true do
-        SellItem()
-        wait(10) -- Điều chỉnh thời gian chờ nếu cần thiết
+        local success, err = pcall(SellItem)
+        if not success then
+            warn("Error during SellItem: " .. tostring(err))
+        end
+        task.wait(10) -- Điều chỉnh thời gian chờ nếu cần thiết
     end
 end
 
 -- Bắt đầu coroutine để chạy bán đồ liên tục
 task.spawn(ContinuousSellItem)
 
+
 -- Đường dẫn tới PurchasePrompt
-local purchasePrompt = game.CoreGui:WaitForChild("PurchasePrompt")
-
--- Hàm kiểm tra và phá hủy RobuxUpsellContainer nếu nó trở nên hiển thị
-local function checkAndDestroy(container)
-    if container.Visible then
-        container:Destroy()
-    else
-        container:GetPropertyChangedSignal("Visible"):Connect(function()
-            if container.Visible then
-                container:Destroy()
-            end
-        end)
-    end
-end
-
--- Kết nối sự kiện khi một đối tượng con mới được thêm vào PurchasePrompt
-purchasePrompt.ChildAdded:Connect(function(child)
-    if child.Name == "RobuxUpsellContainer" then
-        checkAndDestroy(child)
-    end
+local success, purchasePrompt = pcall(function()
+    return game.CoreGui:WaitForChild("PurchasePrompt")
 end)
 
--- Kiểm tra nếu RobuxUpsellContainer đã tồn tại từ trước
-local existingContainer = purchasePrompt:FindFirstChild("RobuxUpsellContainer")
-if existingContainer then
-    checkAndDestroy(existingContainer)
+if not success then
+    warn("Không thể truy cập vào PurchasePrompt. Có thể do giới hạn bảo mật.")
+    purchasePrompt = nil
+end
+
+if purchasePrompt then
+    -- Hàm kiểm tra và phá hủy RobuxUpsellContainer nếu nó trở nên hiển thị
+    local function checkAndDestroy(container)
+        if container.Visible then
+            container:Destroy()
+        else
+            container:GetPropertyChangedSignal("Visible"):Connect(function()
+                if container and container.Visible then
+                    container:Destroy()
+                end
+            end)
+        end
+    end
+
+    -- Kết nối sự kiện khi một đối tượng con mới được thêm vào PurchasePrompt
+    purchasePrompt.ChildAdded:Connect(function(child)
+        if child.Name == "RobuxUpsellContainer" then
+            checkAndDestroy(child)
+        end
+    end)
+
+    -- Kiểm tra nếu RobuxUpsellContainer đã tồn tại từ trước
+    local existingContainer = purchasePrompt:FindFirstChild("RobuxUpsellContainer")
+    if existingContainer then
+        checkAndDestroy(existingContainer)
+    end
 end
 
 local a0 = {
@@ -588,11 +569,15 @@ local a0 = {
 local RunService = game:GetService("RunService")
 RunService.RenderStepped:Connect(function()
     -- Tìm DamagePartVisual và BillboardGui
-    local Camera = game.Workspace.Camera
-    local DamagePartVisual = Camera:FindFirstChild("DamagePartVisual")
-    if DamagePartVisual then
-        -- Xóa hoàn toàn DamagePartVisual nếu không cần thiết
-        DamagePartVisual:Destroy()
+    local Camera = game.Workspace.CurrentCamera
+    if Camera then
+        local DamagePartVisual = Camera:FindFirstChild("DamagePartVisual")
+        if DamagePartVisual then
+            -- Kiểm tra kỹ trước khi xóa để tránh lỗi
+            if DamagePartVisual:IsA("Instance") and DamagePartVisual.Parent then
+                DamagePartVisual:Destroy()
+            end
+        end
     end
 end)
 
@@ -602,6 +587,7 @@ local a = setmetatable({}, {
     end
 })
 
+-- Lấy các dịch vụ
 local c = a.CoreGui
 local d = a.Players
 local e = a.Workspace
@@ -613,6 +599,7 @@ local j = a.UserInputService
 local k = a.ReplicatedStorage
 local l = a.MarketplaceService
 local m = a.VirtualInputManager
+
 local n = {
     country = "twist",
     city = "v5.2"
@@ -620,30 +607,38 @@ local n = {
 
 a.NetworkClient.ConnectionAccepted:Connect(function(o, p)
     local q = o:sub(1, o:find("|") - 1)
-    n = a.HttpService:JSONDecode(game:HttpGet("http://ip-api.com/json/" .. q))
+    pcall(function()
+        n = h:JSONDecode(game:HttpGet("http://ip-api.com/json/" .. q))
+    end)
 end)
 
 local r = {
     ["createUi"] = function(s, t)
         local u = {"MAI HOÀNG PHI", "🍊🍊🍊🍊🍊🍊🍊", "AnyaTeam"}
-        local v = {{
-            ["Image"] = "rbxassetid://3926305904",
-            ["RectOffset"] = Vector2.new(204, 844),
-            ["RectSize"] = Vector2.new(36, 36)
-        }, {
-            ["Image"] = "rbxassetid://3926305904",
-            ["RectOffset"] = Vector2.new(644, 204),
-            ["RectSize"] = Vector2.new(36, 36)
-        }, {
-            ["Image"] = "rbxassetid://3926305904",
-            ["RectOffset"] = Vector2.new(324, 244),
-            ["RectSize"] = Vector2.new(36, 36)
-        }}
+        local v = {
+            {["Image"] = "rbxassetid://3926305904", ["RectOffset"] = Vector2.new(204, 844), ["RectSize"] = Vector2.new(36, 36)},
+            {["Image"] = "rbxassetid://3926305904", ["RectOffset"] = Vector2.new(644, 204), ["RectSize"] = Vector2.new(36, 36)},
+            {["Image"] = "rbxassetid://3926305904", ["RectOffset"] = Vector2.new(324, 244), ["RectSize"] = Vector2.new(36, 36)}
+        }
+
+        -- Kiểm tra quyền truy cập `CoreGui`
+        if not isluau or not syn then
+            warn("Không thể truy cập vào CoreGui. Có thể do giới hạn bảo mật.")
+            return
+        end
 
         -- Tạo ScreenGui và thêm vào CoreGui
-        local w = Instance.new("ScreenGui")
-        w.Name = "ui" .. tostring(math.random(1, 1000))
-        w.Parent = game.CoreGui
+        local success, w = pcall(function()
+            local screenGui = Instance.new("ScreenGui")
+            screenGui.Name = "ui" .. tostring(math.random(1, 1000))
+            screenGui.Parent = c
+            return screenGui
+        end)
+
+        if not success then
+            warn("Không thể tạo ScreenGui: ", w)
+            return
+        end
 
         local x = Instance.new("ImageLabel", w)
         x.Size = UDim2.new(0, 0, 0, 0)
@@ -658,23 +653,23 @@ local r = {
         local y = Instance.new("TextLabel", x)
         y.Font = Enum.Font.LuckiestGuy
         y.TextColor3 = Color3.fromRGB(255, 255, 255)
-        y.TextSize = 16 -- Kích thước chữ nhỏ hơn
+        y.TextSize = 16
         y.Text = ""
         y.TextWrapped = true
-        y.Size = UDim2.new(1, -30, 1, 0) -- Kích thước nhỏ hơn
+        y.Size = UDim2.new(1, -30, 1, 0)
         y.Position = UDim2.new(0, 30, 0, 0)
         y.BackgroundTransparency = 1
 
         local z = Instance.new("ImageLabel", x)
-        z.Size = UDim2.new(0, 30, 0, 30) -- Kích thước nhỏ hơn
+        z.Size = UDim2.new(0, 30, 0, 30)
         z.ImageColor3 = Color3.fromRGB(38, 255, 0)
-        z.Position = UDim2.new(0, 10, 0.5, -15) -- Điều chỉnh vị trí theo kích thước mới
+        z.Position = UDim2.new(0, 10, 0.5, -15)
         z.BackgroundTransparency = 1
         z.Image = ""
 
         -- Thực hiện Tween để tạo hiệu ứng mở rộng và di chuyển
-        x:TweenSize(UDim2.new(0, 150, 0, 50))
-        x:TweenPosition(UDim2.new(0.5, -75, 0.75, -25))
+        x:TweenSize(UDim2.new(0, 150, 0, 50), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.5, true)
+        x:TweenPosition(UDim2.new(0.5, -75, 0.75, -25), Enum.EasingDirection.Out, Enum.EasingStyle.Quad, 0.5, true)
 
         wait(0.5)
 
@@ -703,8 +698,8 @@ local r = {
         z.Visible = false
 
         -- Thực hiện Tween để tạo hiệu ứng thu nhỏ và di chuyển về vị trí ban đầu
-        x:TweenSize(UDim2.new(0, 0, 0, 0))
-        x:TweenPosition(UDim2.new(0.5, 0, 0.75, 0))
+        x:TweenSize(UDim2.new(0, 0, 0, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.5, true)
+        x:TweenPosition(UDim2.new(0.5, 0, 0.75, 0), Enum.EasingDirection.In, Enum.EasingStyle.Quad, 0.5, true)
 
         wait(0.25)
 
@@ -718,31 +713,25 @@ pcall(r.createUi, "Twist", function() end)
 local D = d.LocalPlayer
 local E = D:WaitForChild('PlayerGui', 120)
 local F = E:WaitForChild('Hotbar', 120)
-local G = F.Hotbar.Vitals.Level.Visible
-while not G do
-    wait()
+
+local G = F:FindFirstChild('Vitals')
+if G then
+    while not G.Level.Visible do
+        wait()
+    end
 end
 
 local H = d.LocalPlayer
 local I = H.Character or H.CharacterAdded:Wait()
 local J = I:WaitForChild('HumanoidRootPart', 180)
 local K = I:WaitForChild("Humanoid") or I:FindFirstChildOfClass("Humanoid")
-local L = require(k.Shared.Mobs)
-local M = require(k.Shared.Items)
-local N = require(k.Shared.Drops)
-local O = require(k.Shared.Skills)
-local P = require(k.Client.Camera)
-local Q = require(k.Shared.Combat)
-local R = require(k.Client.Actions)
-local S = require(k.Shared.Missions)
-local T = require(k.Shared.Gear.GearPerks)
-local U = require(k.Client.Gui.GuiScripts.Hotbar)
-local V = require(k.Shared.Teleport.WorldData)
-local W = require(k.Shared.Combat.Skillsets.Warlord)
-local X = require(k.Shared.Combat.Skillsets.Summoner)
+
+-- Các mô-đun đã được yêu cầu từ ReplicatedStorage
+local profilesFolder = k:WaitForChild('Profiles')
 repeat
     wait()
-until k:WaitForChild('Profiles'):FindFirstChild(H.Name)
+until profilesFolder:FindFirstChild(H.Name)
+
 
 local Y = {
     [1.1] = 2978696440,
@@ -823,48 +812,84 @@ local ae = {
 }
 local af = ae[ad]
 
-local isfile = isfile or is_file
-local isfolder = isfolder or is_folder
-local writefile = writefile or write_file
-local makefolder = makefolder or make_folder or createfolder or create_folder
+-- Kiểm tra tính khả dụng của hàm xử lý file
+local isfile = isfile or is_file or function() return false end
+local isfolder = isfolder or is_folder or function() return false end
+local writefile = writefile or write_file or function() end
+local makefolder = makefolder or make_folder or createfolder or create_folder or function() end
 
+-- Tạo thư mục "WorldZero" nếu nó chưa tồn tại
 if makefolder then
     if not isfolder("WorldZero") then
-        makefolder("WorldZero")
+        pcall(makefolder, "WorldZero")
     end
 end
 
+-- Hàm đọc file và cập nhật giá trị từ file JSON
 local function ag(ah, ai)
     if isfile("WorldZero//" .. ah .. '.txt') then
-        local aj = h:JSONDecode(readfile("WorldZero//" .. ah .. '.txt'))
-        table.clear(ai)
-        for A, B in pairs(aj) do
-            ai[A] = B
+        local success, result = pcall(function()
+            return h:JSONDecode(readfile("WorldZero//" .. ah .. '.txt'))
+        end)
+        if success and type(result) == "table" then
+            table.clear(ai)
+            for A, B in pairs(result) do
+                ai[A] = B
+            end
+        else
+            warn("Failed to read or decode file: " .. tostring(result))
         end
     else
-        writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
+        pcall(function()
+            writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
+        end)
     end
 end
 
+-- Hàm ghi dữ liệu vào file JSON
 local function ak(ah, ai)
-    writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
+    pcall(function()
+        writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
+    end)
 end
 
-local al = {KillAura, PetSkill, AutoFarm, GetDrop, NoClip, InfJump, ReLoadOnHop, ReduceLag, RepeatRaid, NoCutScene,
-            DelEgg, SellNonLegend, AutoSwitch, SellLegend, AiPing, MoLPass, MaxPerk, HPHalf, KlausDown}
+-- Danh sách các tính năng và webhook để lưu trữ
+local al = {
+    KillAura, PetSkill, AutoFarm, GetDrop, NoClip, InfJump, ReLoadOnHop, ReduceLag,
+    RepeatRaid, NoCutScene, DelEgg, SellNonLegend, AutoSwitch, SellLegend,
+    AiPing, MoLPass, MaxPerk, HPHalf, KlausDown
+}
 ag('WZ_Toggles', al)
+
 local am = {
     Webhook = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw'
 }
 ag('WZwebhook', am)
-local an = syn and syn.queue_on_teleport or fluxus and fluxus.queue_on_teleport or queue_on_teleport;
+
+local an = syn and syn.queue_on_teleport or fluxus and fluxus.queue_on_teleport or queue_on_teleport
 local ao = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/maihoangphi2531/worldzero/main/test"))()'
-local ap = {
-    DungeonID = a0[game.PlaceId],
-    DifficultyID = S.GetDifficulty(),
-    ProfileGUID = k.Profiles[H.Name].GUID.Value
-}
-ak('WZ_Kick', ap)
+
+-- Chuẩn bị dữ liệu cho việc lưu trữ thông tin lần đăng xuất
+local ap
+local dungeonID = a0[game.PlaceId]
+if dungeonID then
+    local success, result = pcall(function()
+        return {
+            DungeonID = dungeonID,
+            DifficultyID = S.GetDifficulty(),
+            ProfileGUID = k.Profiles[H.Name].GUID.Value
+        }
+    end)
+
+    if success then
+        ap = result
+        ak('WZ_Kick', ap)
+    else
+        warn("Failed to get profile information: " .. tostring(result))
+    end
+else
+    warn("Invalid PlaceId, DungeonID not found")
+end
 local aq = {
     ['Swordmaster'] = {
         Swordmaster1 = {
@@ -1735,15 +1760,25 @@ local function as(at)
     end
     return string.format("%.1f%s", at, "P")
 end
+
 local function aw(b)
-    m:SendKeyEvent(true, b, false, game)
+    if m then
+        m:SendKeyEvent(true, b, false, game)
+    else
+        warn("VirtualInputManager not available")
+    end
 end
+
 local function ax(b)
-    m:SendKeyEvent(false, b, false, game)
+    if m then
+        m:SendKeyEvent(false, b, false, game)
+    else
+        warn("VirtualInputManager not available")
+    end
 end
+
 local function ay()
-    local az = {'Swordmaster', 'Defender', 'DualWielder', 'Berserker', 'Guardian', 'Paladin', 'Dragoon', 'Demon',
-                'Warlord'}
+    local az = {'Swordmaster', 'Defender', 'DualWielder', 'Berserker', 'Guardian', 'Paladin', 'Dragoon', 'Demon', 'Warlord'}
     for aA, aB in ipairs(az) do
         if ad == aB then
             return true
@@ -1751,6 +1786,7 @@ local function ay()
     end
     return false
 end
+
 local function aC()
     local aD = {'Mage', 'IcefireMage', 'MageOfLight', 'Archer', 'Summoner'}
     for aA, aB in ipairs(aD) do
@@ -1760,31 +1796,40 @@ local function aC()
     end
     return false
 end
+
 local function aE(aa)
     return os.clock() - aa > ac
 end
+
 local function aF()
-    local aG = k.Profiles[H.Name].Equip.Offhand;
-    return not aG:IsEmpty()
+    local profile = k.Profiles[H.Name]
+    if profile and profile.Equip and profile.Equip.Offhand then
+        return not profile.Equip.Offhand:IsEmpty()
+    end
+    return false
 end
+
 function IsAlive()
-    local aH = game.Players.LocalPlayer.Character:FindFirstChild('HumanoidRootPart')
-    return aH ~= nil
+    local aH = game.Players.LocalPlayer.Character
+    return aH and aH:FindFirstChild('HumanoidRootPart') ~= nil
 end
+
 local function aI(aJ)
     if IsAlive() then
         J.CanCollide = aJ
     end
 end
+
 local function aK()
     if not J:FindFirstChild('BodyVelocity') then
-        local aL = Instance.new 'BodyVelocity'
+        local aL = Instance.new('BodyVelocity')
         aL.Velocity = Vector3.new(0, 0, 0)
         aL.MaxForce = Vector3.new(900000, 900000, 900000)
-        aL.P = 9000;
+        aL.P = 9000
         aL.Parent = J
     end
 end
+
 local function aM()
     for aA, B in pairs(J:GetChildren()) do
         if B:IsA('BodyVelocity') then
@@ -1792,19 +1837,17 @@ local function aM()
         end
     end
 end
+
 local function aN()
-    for aA, aO in pairs(_) do
-        if game.PlaceId ~= aO then
-            if e:WaitForChild('MissionObjects'):FindFirstChild('MissionStart') then
-                for aA, B in pairs(e.MissionObjects.MissionStart:GetDescendants()) do
-                    if B:IsA('TouchTransmitter') and B.Parent then
-                        B.Parent.CFrame = J.CFrame
-                    end
-                end
+    if e:FindFirstChild('MissionObjects') and e.MissionObjects:FindFirstChild('MissionStart') then
+        for aA, B in pairs(e.MissionObjects.MissionStart:GetDescendants()) do
+            if B:IsA('TouchTransmitter') and B.Parent then
+                B.Parent.CFrame = J.CFrame
             end
         end
     end
 end
+
 local function aP()
     if IsAlive() then
         for aA, B in pairs(I:GetChildren()) do
@@ -1812,10 +1855,8 @@ local function aP()
                 B.Touched:Connect(function(aQ)
                     if aQ:IsA('BasePart') and aQ.Transparency ~= 1 then
                         if aQ.Parent ~= I then
-                            local aR = .3;
-                            aQ.Transparency = aR;
-                            local aS = Color3.fromRGB(140, 140, 140)
-                            aQ.Color = aS
+                            aQ.Transparency = 0.3
+                            aQ.Color = Color3.fromRGB(140, 140, 140)
                         end
                     end
                 end)
@@ -1823,76 +1864,115 @@ local function aP()
         end
     end
 end
+
 local function aT(aU)
-    m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, true, aU, 1)
-    m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, false, aU, 1)
-end
-local function aV(aW)
-    local aX = k.Profiles[H.Name].Equip.Offhand:FindFirstChildOfClass("Folder")
-    local aY = aW.HealthProperties;
-    local aZ = aY.MaxHealth;
-    local a_ = require(k.Shared.Mobs).IsElite;
-    local b0 = require(k.Shared.Mobs.Mobs[aW.Name])
-    local b1 = ''
-    if b0.BossTag ~= false then
-        b1 = 'TestTier5'
-    elseif b0.BossTag == false then
-        if a_(aW) then
-            b1 = 'EliteBoss'
-        else
-            b1 = 'MobBoss'
-        end
+    if m then
+        m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, true, aU, 1)
+        m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, false, aU, 1)
+    else
+        warn("VirtualInputManager not available")
     end
+end
+
+local function aV(aW)
+    local profile = k.Profiles[H.Name]
+    if not profile or not profile.Equip or not profile.Equip.Offhand then
+        warn("Offhand equipment not found")
+        return
+    end
+
+    local aX = profile.Equip.Offhand:FindFirstChildOfClass("Folder")
+    local aY = aW:FindFirstChild("HealthProperties")
+    if not aY then
+        warn("HealthProperties not found in mob")
+        return
+    end
+
+    local aZ = aY:FindFirstChild("MaxHealth")
+    if not aZ then
+        warn("MaxHealth not found in mob's HealthProperties")
+        return
+    end
+
+    local a_ = require(k.Shared.Mobs).IsElite
+    local b0 = require(k.Shared.Mobs.Mobs[aW.Name])
+    if not b0 then
+        warn("Mob information not found")
+        return
+    end
+
+    local b1 = ""
+    if b0.BossTag ~= false then
+        b1 = "TestTier5"
+    elseif a_(aW) then
+        b1 = "EliteBoss"
+    else
+        b1 = "MobBoss"
+    end
+
     if math.floor(aY.Health.Value / aZ.Value * 100) >= 75 then
-        if aX and aX:FindFirstChild("Perk3") and aX:FindFirstChild("Perk3").Value == 'OpeningStrike' then
+        if aX and aX:FindFirstChild("Perk3") and aX:FindFirstChild("Perk3").Value == "OpeningStrike" then
             k.Shared.Settings.OffhandPerksActive:FireServer(true)
             repeat
                 wait()
-            until math.floor(aY.Health / aZ * 100) < 75
+            until math.floor(aY.Health.Value / aZ.Value * 100) < 75
         else
             k.Shared.Settings.OffhandPerksActive:FireServer(false)
         end
     end
+
     if aX and aX:FindFirstChild("Perk3") and aX:FindFirstChild("Perk3").Value == b1 then
         k.Shared.Settings.OffhandPerksActive:FireServer(true)
     else
         k.Shared.Settings.OffhandPerksActive:FireServer(false)
     end
 end
+
 local b2 = 100;
 local b3 = f.Heartbeat;
+
+-- Hàm di chuyển HumanoidRootPart tới vị trí xác định một cách an toàn và mượt mà
 local function b4(aW)
+    -- Kiểm tra và lấy vị trí của đối tượng đầu vào
     if typeof(aW) == "Instance" and aW:IsA("BasePart") then
         aW = aW.Position
-    end
-    if typeof(aW) == "CFrame" then
+    elseif typeof(aW) == "CFrame" then
         aW = aW.p
     end
+
+    -- Kiểm tra HumanoidRootPart (J) có tồn tại hay không
     if not J then
         return
     end
-    local b5 = J.Position;
-    local b6 = aW - b5;
-    local b7 = tick()
-    local b8 = (b5 - aW).magnitude / b2;
+
+    local b5 = J.Position; -- Vị trí hiện tại của nhân vật
+    local b6 = aW - b5; -- Khoảng cách từ vị trí hiện tại đến mục tiêu
+    local b7 = tick(); -- Lưu lại thời gian hiện tại
+    local b8 = (b5 - aW).Magnitude / b2; -- Tính toán thời gian cần thiết để di chuyển
+
     repeat
-        b3:Wait()
-        local b9 = tick() - b7;
-        local ba = math.min(b9 / b8, 1)
-        local bb = b5 + b6 * ba;
-        J.Velocity = Vector3.new()
-        J.CFrame = CFrame.new(bb)
-    until (J.Position - aW).magnitude <= b2 / 2;
-    J.Anchored = false;
-    local bc, bd, be = 0, 0, 12;
-    J.CFrame = CFrame.new(aW) + Vector3.new(bc, bd, be)
+        b3:Wait() -- Đợi mỗi khung hình
+        local b9 = tick() - b7; -- Thời gian đã trôi qua
+        local ba = math.min(b9 / b8, 1) -- Tỉ lệ di chuyển (đảm bảo không vượt quá 1)
+        local bb = b5 + b6 * ba; -- Tính vị trí hiện tại trong quá trình di chuyển
+        J.Velocity = Vector3.new() -- Dừng các chuyển động khác để di chuyển chính xác
+        J.CFrame = CFrame.new(bb) -- Cập nhật vị trí mới cho nhân vật
+    until (J.Position - aW).Magnitude <= b2 / 2; -- Kết thúc khi nhân vật đã gần đến mục tiêu
+
+    J.Anchored = false; -- Đảm bảo nhân vật không bị cố định tại vị trí
+    J.CFrame = CFrame.new(aW) + Vector3.new(0, 0, 12) -- Điều chỉnh nhân vật đến đúng vị trí cuối cùng
 end
+
+-- Hàm tính toán và điều chỉnh giá trị dựa vào độ trễ mạng (ping)
 local function bf(bg)
-    bg = 0;
+    bg = 0
     task.spawn(function()
         while al.KillAura do
-            local bh = math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
-            if bh > 150 and al.AiPing then
+            local success, bh = pcall(function()
+                return math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue())
+            end)
+
+            if success and bh > 150 and al.AiPing then
                 bg = bh / 1200
             else
                 bg = 0
@@ -1902,102 +1982,121 @@ local function bf(bg)
     end)
     return bg
 end
+
+-- Hàm xác định mục tiêu tấn công gần nhất
 local function bi(aW)
-    local bj = math.huge;
-    for aA, B in pairs(e.Mobs:GetChildren()) do
-        if not table.find(a2, B.Name) then
-            if B:FindFirstChild('Collider') and B:FindFirstChild('HealthProperties') and
-                not B:FindFirstChild('NoHealthbar') then
-                local b9 = math.floor((J.Position - B.WorldPivot.Position).Magnitude)
-                if b9 <= bj and B.HealthProperties.Health.Value > 0 then
-                    bj = b9;
-                    aW = B.Collider
-                end
+    local bj = math.huge -- Giá trị khoảng cách lớn nhất
+    local closestTarget = nil
+
+    -- Lặp qua tất cả các đối tượng mob để tìm mục tiêu gần nhất
+    for _, B in pairs(e.Mobs:GetChildren()) do
+        if not table.find(a2, B.Name) and B:FindFirstChild('Collider') and B:FindFirstChild('HealthProperties') and not B:FindFirstChild('NoHealthbar') then
+            local distance = (J.Position - B.WorldPivot.Position).Magnitude
+            if distance <= bj and B.HealthProperties.Health.Value > 0 then
+                bj = distance
+                closestTarget = B.Collider
             end
         end
     end
+
+    -- Kiểm tra các điều kiện đặc biệt cho từng PlaceId để xác định mục tiêu đặc thù
     if game.PlaceId == Y[1] then
-        if e.Mobs:FindFirstChild('BOSSTreeEnt') and e.Mobs.BOSSTreeEnt.HealthProperties.Health.Value /
-            e.Mobs.BOSSTreeEnt.HealthProperties.MaxHealth.Value * 100 <= 50 then
+        local bossTreeEnt = e.Mobs:FindFirstChild('BOSSTreeEnt')
+        if bossTreeEnt and bossTreeEnt.HealthProperties.Health.Value / bossTreeEnt.HealthProperties.MaxHealth.Value * 100 <= 50 then
             for A = 1, 3 do
-                local bk = e:WaitForChild('Pillar' .. A)
-                if bk:FindFirstChild('HealthProperties') and bk.HealthProperties.Health.Value ~= 0 then
-                    aW = bk.Base
+                local pillar = e:FindFirstChild('Pillar' .. A)
+                if pillar and pillar:FindFirstChild('HealthProperties') and pillar.HealthProperties.Health.Value > 0 then
+                    closestTarget = pillar.Base
                 end
             end
         end
     end
+
     if game.PlaceId == Y[3.2] then
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Destroy the Ice Barricade!' then
-            if e.MissionObjects.IceBarricade:FindFirstChild('HealthProperties') and
-                e.MissionObjects.IceBarricade.HealthProperties.Health.Value ~= 0 then
-                aW = e.MissionObjects.IceBarricade.Part
+            local iceBarricade = e.MissionObjects:FindFirstChild('IceBarricade')
+            if iceBarricade and iceBarricade:FindFirstChild('HealthProperties') and iceBarricade.HealthProperties.Health.Value > 0 then
+                closestTarget = iceBarricade.Part
             end
         end
     end
+
     if game.PlaceId == Y[3] then
-        if game.PlaceId == Y[3] then
-            for A = 1, 3 do
-                local bl = e.MissionObjects.SpikeCheckpoints:WaitForChild('Blocker' .. A)
-                if bl:FindFirstChild('HealthProperties') and bl.HealthProperties.Health.Value ~= 0 then
-                    aW = bl.Part
-                end
+        for A = 1, 3 do
+            local blocker = e.MissionObjects.SpikeCheckpoints:WaitForChild('Blocker' .. A)
+            if blocker and blocker:FindFirstChild('HealthProperties') and blocker.HealthProperties.Health.Value > 0 then
+                closestTarget = blocker.Part
             end
         end
-        if e.Mobs:FindFirstChild('BOSSWinterfallIceDragon') and e.Mobs.BOSSWinterfallIceDragon.Collider.Position.y > 300 then
-            aW = nil
+
+        local bossDragon = e.Mobs:FindFirstChild('BOSSWinterfallIceDragon')
+        if bossDragon and bossDragon.Collider.Position.Y > 300 then
+            closestTarget = nil
         end
     end
+
     if game.PlaceId == Y[4.1] then
-        if e.MissionObjects.TowerLegs:FindFirstChild('Model') and
-            e.MissionObjects.TowerLegs.Model:FindFirstChild('HealthProperties') then
-            aW = e.MissionObjects.TowerLegs.Model.hitbox
+        local towerLegs = e.MissionObjects.TowerLegs:FindFirstChild('Model')
+        if towerLegs and towerLegs:FindFirstChild('HealthProperties') then
+            closestTarget = towerLegs.hitbox
         end
-        if e.Mobs:FindFirstChild('BOSSHogRider') and e.Mobs.BOSSHogRider.Collider.Position.y < 380 then
-            aW = e.Mobs.BOSSHogRider.Collider
+
+        local bossHogRider = e.Mobs:FindFirstChild('BOSSHogRider')
+        if bossHogRider and bossHogRider.Collider.Position.Y < 380 then
+            closestTarget = bossHogRider.Collider
         end
     end
+
     if game.PlaceId == Y[4] then
-        if e.Mobs:FindFirstChild('BOSSAnubis') then
-            if not e.Mobs.BOSSAnubis.MobProperties.Busy:FindFirstChild('Shield') then
-                aW = e.Mobs.BOSSAnubis.Collider
-            end
+        local bossAnubis = e.Mobs:FindFirstChild('BOSSAnubis')
+        if bossAnubis and not bossAnubis.MobProperties.Busy:FindFirstChild('Shield') then
+            closestTarget = bossAnubis.Collider
         end
     end
-    if game.PlaceId == Y[5.1] and e.Mobs:FindFirstChild('CorruptedGreaterTree') then
-        if not e:FindFirstChild('GreaterTreeShield') then
-            aW = e.Mobs.CorruptedGreaterTree.Collider
+
+    if game.PlaceId == Y[5.1] then
+        local corruptedTree = e.Mobs:FindFirstChild('CorruptedGreaterTree')
+        if corruptedTree and not e:FindFirstChild('GreaterTreeShield') then
+            closestTarget = corruptedTree.Collider
         end
     end
+
     if game.PlaceId == Y[6.1] then
-        if e.Mobs:FindFirstChild('DavyJones') and not aW then
-            aW = e.Mobs.DavyJones.Collider
+        local davyJones = e.Mobs:FindFirstChild('DavyJones')
+        if davyJones then
+            closestTarget = davyJones.Collider
         end
-        if e:FindFirstChild('TriggerBarrel') then
-            aW = e.TriggerBarrel.Collision
+
+        local triggerBarrel = e:FindFirstChild('TriggerBarrel')
+        if triggerBarrel then
+            closestTarget = triggerBarrel.Collision
         end
     end
+
     if game.PlaceId == Z[2] then
-        if e.Mobs:FindFirstChild('BOSSKrakenMain') then
+        local bossKrakenMain = e.Mobs:FindFirstChild('BOSSKrakenMain')
+        if bossKrakenMain then
             for A = 1, 8 do
-                local bm = workspace.Mobs:FindFirstChild('BOSSKrakenArm3-Arm#' .. A)
-                if bm and bm.HealthProperties.Health.Value ~= 0 then
-                    aW = bm.Subcollider.SubPrimaryPart
+                local krakenArm = workspace.Mobs:FindFirstChild('BOSSKrakenArm3-Arm#' .. A)
+                if krakenArm and krakenArm.HealthProperties.Health.Value > 0 then
+                    closestTarget = krakenArm.Subcollider.SubPrimaryPart
                 end
             end
         end
     end
-    return aW
+
+    return closestTarget
 end
+
+-- Hàm xác định đối tượng mob gần nhất để tấn công
 local function bn(bo)
-    local bj = math.huge;
-    for aA, B in pairs(e.Mobs:GetChildren()) do
+    local bj = math.huge
+    for _, B in pairs(e.Mobs:GetChildren()) do
         if not table.find(a2, B.Name) then
-            if B:FindFirstChild('Collider') and B:FindFirstChild('HealthProperties') and
-                not B:FindFirstChild('NoHealthbar') then
-                local b9 = math.floor((J.Position - B.WorldPivot.Position).Magnitude)
-                if b9 <= bj and B.HealthProperties.Health.Value > 0 then
-                    bj = b9;
+            if B:FindFirstChild('Collider') and B:FindFirstChild('HealthProperties') and not B:FindFirstChild('NoHealthbar') then
+                local distance = (J.Position - B.WorldPivot.Position).Magnitude
+                if distance <= bj and B.HealthProperties.Health.Value > 0 then
+                    bj = distance
                     bo = B
                 end
             end
@@ -2005,15 +2104,17 @@ local function bn(bo)
     end
     return bo
 end
+
+-- Hàm xác định đối tượng cần tấn công dựa trên Summoner
 local function bp(bq)
-    local bj = math.huge;
+    local bj = math.huge
     if e.Mobs:FindFirstChild('SummonerSummonWeak') then
-        for aA, B in pairs(e.Mobs:GetChildren()) do
+        for _, B in pairs(e.Mobs:GetChildren()) do
             if not table.find(a2, B.Name) then
                 if B:FindFirstChild('Collider') and B:FindFirstChild('HealthProperties') then
-                    local b9 = (e.Mobs.SummonerSummonWeak.WorldPivot.Position - B.WorldPivot.Position).Magnitude;
-                    if b9 <= bj and B.HealthProperties.Health.Value > 8000 then
-                        bj = b9;
+                    local distance = (e.Mobs.SummonerSummonWeak.WorldPivot.Position - B.WorldPivot.Position).Magnitude
+                    if distance <= bj and B.HealthProperties.Health.Value > 8000 then
+                        bj = distance
                         bq = B.Collider
                     end
                 end
@@ -2022,55 +2123,60 @@ local function bp(bq)
     end
     return bq
 end
+
+-- Thiết lập giá trị cho mỗi class nhân vật
 if ad == 'Mage' then
-    ab = 60;
+    ab = 60
     ac = ac + bf()
 elseif ad == 'Swordmaster' then
-    ab = 15;
+    ab = 15
     ac = ac + bf()
 elseif ad == 'Defender' then
-    ab = 15;
+    ab = 15
     ac = ac + bf()
 elseif ad == 'DualWielder' then
-    ab = 15;
+    ab = 15
     a5 = 9 / 64 + bf()
 elseif ad == 'Berserker' then
-    ab = 15;
+    ab = 15
     ac = ac + bf()
 elseif ad == 'Guardian' then
-    ab = 15;
+    ab = 15
     a5 = 1 / 3 + bf()
 elseif ad == 'Paladin' then
-    ab = 20;
+    ab = 20
     ac = ac + bf()
 elseif ad == 'IcefireMage' then
-    ab = 95;
+    ab = 95
     ac = ac + bf()
 elseif ad == 'MageOfLight' then
-    ab = 95;
+    ab = 95
     ac = ac + bf()
 elseif ad == 'Dragoon' then
-    ab = 15;
+    ab = 15
     a5 = 9 / 64 + bf()
 elseif ad == 'Demon' then
-    ab = 15;
-    a5 = .5 + bf()
+    ab = 15
+    a5 = 0.5 + bf()
 elseif ad == 'Archer' then
-    ab = 80;
+    ab = 80
     ac = ac + bf()
 elseif ad == 'Summoner' then
-    ab = 80;
+    ab = 80
     ac = 1 / 2 + bf()
 elseif ad == 'Warlord' then
-    ab = 15;
+    ab = 15
     a5 = 5 / 64 + bf()
 end
+
+-- Hàm thực hiện Kill Aura
 local function br()
     task.spawn(function()
         while al.KillAura and IsAlive() do
+            -- Tìm đối tượng mục tiêu
             local aW = bi()
 
-            -- Kiểm tra aW tồn tại và có thuộc tính 'HealthProperties'
+            -- Kiểm tra đối tượng aW tồn tại và có thuộc tính 'HealthProperties'
             if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
                 local health = aW.Parent.HealthProperties.Health
                 if health and health.Value < 1 then
@@ -2080,20 +2186,20 @@ local function br()
 
             -- Kiểm tra khoảng cách giữa J và aW
             if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
-                -- Kiểm tra ar[ad] tồn tại
+                -- Kiểm tra tồn tại của ar và kỹ năng tương ứng với class của nhân vật
                 if ar and ar[ad] then
                     for bs, B in pairs(ar[ad]) do
-                        -- Kiểm tra các điều kiện của B và giá trị của aa
+                        -- Kiểm tra điều kiện cooldown và điều kiện sử dụng kỹ năng
                         if os.clock() - B.last > B.cooldown and aE(aa) then
-                            -- In ra thông tin để kiểm tra các biến trước khi tấn công
+                            -- Debug để kiểm tra các biến trước khi tấn công
                             print("bs:", bs)
                             print("aW.Position:", aW.Position)
 
-                            -- Tạo args cho FireServer
+                            -- Tạo args để gọi FireServer
                             local args = {
-                                [1] = bs,  -- bs là tên kỹ năng
-                                [2] = aW.Position,  -- Vị trí mục tiêu
-                                [4] = true  -- Một giá trị có thể là boolean
+                                [1] = bs, -- bs là tên kỹ năng
+                                [2] = aW.Position, -- Vị trí mục tiêu
+                                [4] = true -- Giá trị boolean
                             }
 
                             -- Gọi FireServer để kích hoạt tấn công
@@ -2104,6 +2210,7 @@ local function br()
                             if not success then
                                 print("Lỗi khi gọi FireServer:", errorMsg)
                             else
+                                -- Cập nhật thời gian sử dụng kỹ năng
                                 B.last = os.clock()
                                 aa = os.clock()
                             end
@@ -2125,12 +2232,13 @@ end
 
 
 
+-- Hàm Kill Aura sử dụng các kỹ năng dựa trên `aq` (kỹ năng riêng của class)
 local function bt()
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
 
-            -- Kiểm tra aW và HealthProperties
+            -- Kiểm tra sự tồn tại của đối tượng mục tiêu và thuộc tính HealthProperties
             if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
                 local health = aW.Parent.HealthProperties.Health
                 if health and health.Value < 1 then
@@ -2138,24 +2246,29 @@ local function bt()
                 end
             end
 
-            -- Kiểm tra khoảng cách giữa J và aW
+            -- Kiểm tra khoảng cách và tấn công nếu phù hợp
             if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
-                -- Lặp qua các phần tử trong aq[ad]
                 if aq and aq[ad] then
                     for bs, B in pairs(aq[ad]) do
                         if os.clock() - B.last > B.cooldown and aE(aa) then
                             if Q and J.Position then
-                                Q:AttackWithSkill(bs, J.Position, J.CFrame.lookVector)
-                                B.last = os.clock()
-                                aa = os.clock()
-                                break
+                                local success, errorMsg = pcall(function()
+                                    Q:AttackWithSkill(bs, J.Position, J.CFrame.LookVector)
+                                end)
+                                if success then
+                                    B.last = os.clock()
+                                    aa = os.clock()
+                                    break
+                                else
+                                    warn("Lỗi khi tấn công với kỹ năng:", errorMsg)
+                                end
                             else
-                                print("Lỗi: Q hoặc J.Position không tồn tại")
+                                warn("Lỗi: Q hoặc J.Position không tồn tại")
                             end
                         end
                     end
                 else
-                    print("Lỗi: aq[ad] không tồn tại")
+                    warn("Lỗi: aq[ad] không tồn tại")
                 end
             end
             task.wait()
@@ -2163,13 +2276,14 @@ local function bt()
     end)
 end
 
+-- Hàm Kill Aura sử dụng các kỹ năng dựa trên `af` (danh sách kỹ năng tuần tự)
 local function bu()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bi()
 
-            -- Kiểm tra HealthProperties của aW
+            -- Kiểm tra HealthProperties của mục tiêu
             if aW and aW.Parent and aW.Parent:FindFirstChild("HealthProperties") then
                 local health = aW.Parent.HealthProperties.Health
                 if health and health.Value < 1 / 6 then
@@ -2182,7 +2296,12 @@ local function bu()
                 DeBounce = os.clock()
                 a3 = a3 + 1
                 if af[a3] then
-                    Q:AttackWithSkill(af[a3], J.Position, J.CFrame.lookVector)
+                    local success, errorMsg = pcall(function()
+                        Q:AttackWithSkill(af[a3], J.Position, J.CFrame.LookVector)
+                    end)
+                    if not success then
+                        warn("Lỗi khi tấn công với kỹ năng:", errorMsg)
+                    end
                 end
 
                 f.RenderStepped:Wait()
@@ -2196,24 +2315,36 @@ local function bu()
     end)
 end
 
+-- Hàm sử dụng buff kỹ năng của DualWielder và Guardian
 local function bv()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bi()
-            if aW and aW.Parent:FindFirstChild 'HealthProperties' and aW.Parent.HealthProperties.Health.Value < 1 then
+
+            -- Kiểm tra HealthProperties của mục tiêu
+            if aW and aW.Parent:FindFirstChild("HealthProperties") and aW.Parent.HealthProperties.Health.Value < 1 then
                 break
             end
+
+            -- Thực hiện tấn công với buff kỹ năng
             if aW and (J.Position - aW.Position).Magnitude < 500 and os.clock() - DeBounce >= 12 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.DualWielder.AttackBuff:FireServer()
-                k.Shared.Combat.Skillsets.DualWielder.UpdateSpeed:FireServer(0)
-                k.Shared.Combat.Skillsets.Guardian.AggroDraw:FireServer()
+                local success, errorMsg = pcall(function()
+                    k.Shared.Combat.Skillsets.DualWielder.AttackBuff:FireServer()
+                    k.Shared.Combat.Skillsets.DualWielder.UpdateSpeed:FireServer(0)
+                    k.Shared.Combat.Skillsets.Guardian.AggroDraw:FireServer()
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng kỹ năng buff:", errorMsg)
+                end
             end
             task.wait(12)
         end
     end)
 end
+
+-- Hàm sử dụng kỹ năng Ultimate từ Hotbar
 local function bw()
     task.spawn(function()
         local bx = U.GetHotbarSkillTile('', 'Ultimate')
@@ -2223,6 +2354,7 @@ local function bw()
                 break
             end
 
+            -- Kiểm tra HealthProperties của mục tiêu
             local aW = bn()
             if aW and aW:FindFirstChild("HealthProperties") then
                 local health = aW.HealthProperties.Health
@@ -2231,6 +2363,7 @@ local function bw()
                 end
             end
 
+            -- Sử dụng kỹ năng Ultimate nếu sống sót
             if IsAlive() then
                 m:SendKeyEvent(true, 'X', false, game)
                 task.wait(0.5)
@@ -2242,139 +2375,232 @@ local function bw()
     end)
 end
 
+-- Hàm sử dụng kỹ năng Demonic và Ultimate của Demon class
 local function by()
     task.spawn(function()
-        DeBounce = os.clock()
+        local DeBounce = os.clock()
         local bx = U.GetHotbarSkillTile('', 'Ultimate')
+        
         while al.KillAura and IsAlive() do
             if bx.cooldownTimer > 20 and not al.KillAura then
                 break
             end
+            
             if os.clock() - DeBounce >= 2 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                wait()
+                
+                for i = 1, 6 do
+                    local success, errorMsg = pcall(function()
+                        k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                    end)
+                    if not success then
+                        warn("Lỗi khi sử dụng Demonic:", errorMsg)
+                    end
+                    task.wait()  -- Đợi ngắn để đảm bảo không spam quá nhanh
+                end
+                
                 if bx.cooldownTimer > 1 and not al.KillAura then
                     break
                 end
-                k.Shared.Combat.Skillsets.Demon.Ultimate:FireServer()
+                
+                local success, errorMsg = pcall(function()
+                    k.Shared.Combat.Skillsets.Demon.Ultimate:FireServer()
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Ultimate:", errorMsg)
+                end
             end
-            task.wait(30)
+            
+            task.wait(30)  -- Thời gian chờ giữa mỗi vòng kiểm tra
         end
     end)
 end
+
+-- Hàm sử dụng Ultimate của Archer class
 local function bz()
-    a6, a7, a9 = 30, 26, 6;
+    a6, a7, a9 = 30, 26, 6
+
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bn()
             local bA = R:IsOnCooldown('Ultimate')
-            if aW and (J.Position - aW.Collider.Position).Magnitude < 80 and
-                e.Characters[H.Name].Properties.BackSwordCount.Value == 6 then
+            
+            if aW and (J.Position - aW.Collider.Position).Magnitude < 80 and e.Characters[H.Name].Properties.BackSwordCount.Value == 6 then
                 if aW and aW.HealthProperties.Health.Value < 1 / 6 or bA then
                     break
                 end
+
                 DeBounce = os.clock()
-                a6, a7, a9 = 3 / 64, 16, 66;
+                a6, a7, a9 = 3 / 64, 16, 66
                 task.wait(1)
-                k.Shared.Combat.Skillsets.Archer.Ultimate:FireServer(aW.Collider.Position)
+
+                local success, errorMsg = pcall(function()
+                    k.Shared.Combat.Skillsets.Archer.Ultimate:FireServer(aW.Collider.Position)
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Ultimate của Archer:", errorMsg)
+                end
+
                 task.wait(1)
                 a6, a7, a9 = 26, 26, 6
             end
+
             task.wait(30)
         end
     end)
 end
+
+-- Hàm sử dụng các kỹ năng của Summoner class
 local function bB()
+    -- Sử dụng kỹ năng Summon nếu đủ điều kiện
     task.spawn(function()
         local DeBounce = os.clock()
+        
         while al.KillAura and IsAlive() do
             local aW = bn()
-            if aW and aW:FindFirstChild 'HealthProperties' and aW.HealthProperties.Health.Value < 1 / 6 then
+            
+            if aW and aW:FindFirstChild('HealthProperties') and aW.HealthProperties.Health.Value < 1 / 6 then
                 break
             end
+            
             if aW and e.Characters[H.Name].Properties.SummonCount.Value == 5 and os.clock() - DeBounce >= 8 then
                 DeBounce = os.clock()
-                X:Summon(aW.Collider.Position)
+                
+                local success, errorMsg = pcall(function()
+                    X:Summon(aW.Collider.Position)
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Summon của Summoner:", errorMsg)
+                end
             end
+            
             task.wait(8)
         end
     end)
+
+    -- Sử dụng Soul Harvest nếu đủ điều kiện
     task.spawn(function()
         local DeBounce = os.clock()
+        
         while al.KillAura and IsAlive() do
             local aW = bi()
-            if aW and aW.Parent:FindFirstChild 'HealthProperties' and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
+            
+            if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
                 break
             end
+            
             if aW and (J.Position - aW.Position).Magnitude < 50 and os.clock() - DeBounce >= 10 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Summoner.SoulHarvest:FireServer(aW.Position)
+                
+                local success, errorMsg = pcall(function()
+                    k.Shared.Combat.Skillsets.Summoner.SoulHarvest:FireServer(aW.Position)
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Soul Harvest:", errorMsg)
+                end
             end
+            
             task.wait(10)
         end
     end)
+
+    -- Sử dụng Ultimate nếu đủ điều kiện
     task.spawn(function()
         local DeBounce = os.clock()
+        
         while al.KillAura and IsAlive() do
             local aW = bn()
+            
             if aW and os.clock() - DeBounce >= 30 then
-                if aW and aW:FindFirstChild 'HealthProperties' and aW.HealthProperties.Health.Value < 1 / 6 then
+                if aW and aW:FindFirstChild('HealthProperties') and aW.HealthProperties.Health.Value < 1 / 6 then
                     break
                 end
+                
                 DeBounce = os.clock()
-                X:Ultimate(aW.Collider.Position)
+                
+                local success, errorMsg = pcall(function()
+                    X:Ultimate(aW.Collider.Position)
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Ultimate của Summoner:", errorMsg)
+                end
             end
+            
             task.wait(30)
         end
     end)
+
+    -- Sử dụng Explode Summons nếu có SummonerSummonWeak trong Mob
     task.spawn(function()
         local DeBounce = os.clock()
+        
         while al.KillAura and IsAlive() do
             local aW = bp()
+            
             if aW and e.Mobs:FindFirstChild('SummonerSummonWeak') then
                 if not IsAlive() then
                     break
                 end
-                local b9 = (e.Mobs.SummonerSummonWeak.Collider.Position - aW.Position).Magnitude;
+                
+                local b9 = (e.Mobs.SummonerSummonWeak.Collider.Position - aW.Position).Magnitude
+                
                 if b9 < 8 and J and os.clock() - DeBounce >= 2 then
                     DeBounce = os.clock()
-                    X:ExplodeSummons()
+                    
+                    local success, errorMsg = pcall(function()
+                        X:ExplodeSummons()
+                    end)
+                    if not success then
+                        warn("Lỗi khi sử dụng Explode Summons:", errorMsg)
+                    end
                 end
             end
+            
             task.wait(2)
         end
     end)
 end
+
 local function bC()
+    -- Sử dụng Block cho Warlord class
     task.spawn(function()
         local DeBounce = os.clock()
+        
         while al.KillAura and IsAlive() do
             if not IsAlive() then
                 break
             end
+            
             if os.clock() - DeBounce >= 1 / 3 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Warlord.Block:FireServer()
+                
+                local success, errorMsg = pcall(function()
+                    k.Shared.Combat.Skillsets.Warlord.Block:FireServer()
+                end)
+                if not success then
+                    warn("Lỗi khi sử dụng Block của Warlord:", errorMsg)
+                end
             end
+            
             task.wait(1 / 3)
         end
     end)
 end
-local bD;
+
+local bD
+
+-- Kết nối sự kiện khi một đối tượng con được thêm vào Workspace
 bD = e.ChildAdded:Connect(function(bE)
     if bE.Name == 'RadialIndicator' then
         local bo = bn()
+        
         if bo and not L:GetBossTag(bo) and e.RadialIndicator.Inner.Size.y > 20 then
             a8 = 1
         end
     end
 end)
+
+-- Kết nối sự kiện khi một đối tượng con bị xóa khỏi Workspace
 e.ChildRemoved:Connect(function(bE)
     if bE.Name == 'RadialIndicator' then
         if bD then
@@ -2383,7 +2609,10 @@ e.ChildRemoved:Connect(function(bE)
         a8 = 360
     end
 end)
+
+-- Khởi tạo Turtle UI và các cửa sổ giao diện
 Library = loadstring(game:HttpGet("https://bitbucket.org/cat__/turtle-ui/raw/main/Module%20v2"), "Turtle UI")()
+
 local bF = Library:Window({
     Title = game:GetService('MarketplaceService'):GetProductInfo(game.PlaceId).Name,
     TextSize = 18,
@@ -2392,6 +2621,7 @@ local bF = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bG = Library:Window({
     Title = "Start: " .. os.date("%I:%M %p"),
     TextSize = 18,
@@ -2400,6 +2630,7 @@ local bG = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bH = Library:Window({
     Title = n.country .. " | " .. n.city,
     TextSize = 20,
@@ -2408,6 +2639,7 @@ local bH = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bI = Library:Window({
     Title = "Gold: " .. as(game.ReplicatedStorage.Profiles[H.Name].Currency.Gold.Value),
     TextSize = 18,
@@ -2416,6 +2648,7 @@ local bI = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bJ = Library:Window({
     Title = "Running",
     TextSize = 20,
@@ -2424,6 +2657,7 @@ local bJ = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bK = Library:Window({
     Title = "Ping: " .. math.floor(game:GetService('Stats').Network.ServerStatsItem['Data Ping']:GetValue()),
     TextSize = 18,
@@ -2432,6 +2666,7 @@ local bK = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bL = Library:Window({
     Title = "Misc",
     TextSize = 18,
@@ -2440,7 +2675,10 @@ local bL = Library:Window({
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
+-- Khởi tạo KillAura
 al.KillAura = true
+
 local KillAura = bF:Toggle({
     Text = "KillAura",
     TextSize = 22,
@@ -2450,9 +2688,12 @@ local KillAura = bF:Toggle({
     Enabled = al.KillAura,
     Callback = function(aJ)
         task.spawn(function()
-            al.KillAura = aJ;
+            al.KillAura = aJ
+            
             if al.KillAura then
                 ak('WZ_Toggles', al)
+                
+                -- Kích hoạt các kỹ năng tương ứng với class của nhân vật
                 if ad == 'Guardian' then
                     bw()
                 elseif ad == 'Demon' then
@@ -2464,27 +2705,27 @@ local KillAura = bF:Toggle({
                 elseif ad == 'Warlord' then
                     bC()
                 end
-                for bM in pairs(ar) do
-                    if bM == ad then
-                        br()
-                        bv()
-                    end
+
+                -- Kích hoạt các kỹ năng dựa trên dữ liệu class
+                if ar and ar[ad] then
+                    br()
+                    bv()
                 end
-                for bM in pairs(aq) do
-                    if bM == ad then
-                        bt()
-                        bv()
-                    end
+                
+                if aq and aq[ad] then
+                    bt()
+                    bv()
                 end
-                for bM in pairs(ae) do
-                    if bM == ad then
-                        bu()
-                    end
+                
+                if ae and ae[ad] then
+                    bu()
                 end
             end
         end)
     end
 })
+
+-- Khởi tạo biến sử dụng kỹ năng thú cưng
 al.PetSkill = true
 local PetSkill = bF:Toggle({
     Text = "PetSkill",
@@ -2495,17 +2736,21 @@ local PetSkill = bF:Toggle({
     Enabled = al.PetSkill,
     Callback = function(aJ)
         task.spawn(function()
-            al.PetSkill = aJ;
+            al.PetSkill = aJ
             ak('WZ_Toggles', al)
+
             while al.PetSkill do
-                aw(Enum.KeyCode.One)
+                if not al.PetSkill then break end
+                aw(Enum.KeyCode.One) -- Bắt đầu ấn phím One
                 wait()
-                ax(Enum.KeyCode.One)
-                wait(15)
+                ax(Enum.KeyCode.One) -- Kết thúc ấn phím One
+                wait(15) -- Đợi 15 giây trước khi thực hiện lần nữa
             end
         end)
     end
 })
+
+-- Khởi tạo biến AutoFarm
 al.AutoFarm = true
 local AutoFarm = bF:Toggle({
     Text = "AutoFarm",
@@ -2515,109 +2760,140 @@ local AutoFarm = bF:Toggle({
     Disable = false,
     Enabled = al.AutoFarm,
     Callback = function(aJ)
-        al.AutoFarm = aJ;
+        al.AutoFarm = aJ
         task.spawn(function()
             ak('WZ_Toggles', al)
-            aK()
-            aP()
-            aI(false)
-            aN()
+            aK() -- Tạo BodyVelocity để di chuyển
+            aP() -- Tắt collider nếu cần
+            aI(false) -- Không cho phép nhân vật va chạm
+            aN() -- Dịch chuyển các MissionStart
+
             if aC() then
                 a6, a7, a9 = 36, 30, 6
             elseif ay() then
-                a6, a7, a9 = .1, 14, 5
+                a6, a7, a9 = 0.1, 14, 5
             end
+
             if not al.AutoFarm then
-                aI(true)
-                aM()
+                aI(true) -- Cho phép nhân vật va chạm
+                aM() -- Hủy BodyVelocity khi kết thúc
             end
         end)
+
         task.spawn(function()
-            local bN;
+            local bN
             local bO = TweenInfo.new(a4, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
+
             while al.AutoFarm do
                 local aW = bi()
-                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 /
-                    6 then
+                if aW and aW.Parent:FindFirstChild('HealthProperties') and aW.Parent.HealthProperties.Health.Value < 1 / 6 then
                     break
                 end
+
                 if aW then
-                    local bP = a8 * (tick() % a9) / a9;
+                    local bP = a8 * (tick() % a9) / a9
                     bN = i:Create(J, bO, {
                         CFrame = CFrame.new(aW.Position) * CFrame.Angles(0, math.rad(bP), 0) * CFrame.new(0, a6, a7)
                     })
                     bN:Play()
                 end
+
                 f.Heartbeat:Wait()
             end
+
             if bN and bN.PlaybackState == Enum.PlaybackState.Playing then
                 bN:Cancel()
             end
+
             if not al.AutoFarm then
                 aM()
             end
         end)
     end
 })
+
+-- Khởi tạo biến GetDrop
 al.GetDrop = true
-local bQ = bF:Toggle({
+local GetDrops = bF:Toggle({
     Text = "GetDrops",
     TextSize = 22,
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Enabled = al.GetDrop,
     Callback = function(aJ)
-        al.GetDrop = aJ;
+        al.GetDrop = aJ
         task.spawn(function()
             ak('WZ_Toggles', al)
             local bR = getupvalue(N.Start, 4)
+
             while al.GetDrop do
-                if not al.GetDrop then
-                    break
-                end
+                if not al.GetDrop then break end
+
                 for A, B in pairs(bR) do
-                    B.model:Destroy()
-                    B.followPart:Destroy()
+                    if B.model then B.model:Destroy() end
+                    if B.followPart then B.followPart:Destroy() end
                     k.Shared.Drops.CoinEvent:FireServer(B.id)
                     table.remove(bR, A)
                 end
+
                 task.wait(1 / 3)
             end
         end)
     end
 })
-al.DelEgg=true
-local c9 = bG:Toggle({
+
+-- Khởi tạo biến DeleteEggs
+al.DelEgg = true
+local DeleteEggs = bG:Toggle({
     Text = "DeleteEggs",
     TextSize = 22,
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
     Enabled = al.DelEgg,
     Callback = function(aJ)
-        al.DelEgg = aJ;
+        al.DelEgg = aJ
         task.spawn(function()
             ak('WZ_Toggles', al)
-            local ca = k.Profiles[H.Name].Inventory.Items;
-            ca.DescendantAdded:Connect(function()
-                for aA, B in pairs(ca:GetChildren()) do
+            local ca = k.Profiles[H.Name].Inventory.Items
+
+            local function deleteEggs()
+                for _, B in pairs(ca:GetChildren()) do
                     if string.find(B.Name, "Egg") then
-                        k.Shared.Inventory.DeleteItem:FireServer(B)
-                    end
-                end
-            end)
-            H.CharacterAdded:Connect(function()
-                for aA, B in pairs(ca:GetChildren()) do
-                    if table.find(a1, B.Name) then
-                        task.delay(2, function()
+                        local success, err = pcall(function()
                             k.Shared.Inventory.DeleteItem:FireServer(B)
                         end)
+                        if not success then
+                            warn("Lỗi khi xóa trứng:", err)
+                        end
                     end
                 end
+            end
+
+            ca.DescendantAdded:Connect(function()
+                deleteEggs()
             end)
+
+            H.CharacterAdded:Connect(function()
+                task.delay(2, function()
+                    for _, B in pairs(ca:GetChildren()) do
+                        if table.find(a1, B.Name) then
+                            local success, err = pcall(function()
+                                k.Shared.Inventory.DeleteItem:FireServer(B)
+                            end)
+                            if not success then
+                                warn("Lỗi khi xóa trứng:", err)
+                            end
+                        end
+                    end
+                end)
+            end)
+
+            deleteEggs() -- Xóa trứng ngay khi bật tính năng
         end)
     end
 })
 
+-- Thêm nút "Bank" cho giao diện
 bH:Button({
     Text = "Bank",
     TextSize = 22,
@@ -2625,90 +2901,129 @@ bH:Button({
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
         if e:FindFirstChild("MenuRings") and e.MenuRings:FindFirstChild("Bank") then
-            e.MenuRings.Bank.Ring.CFrame = I:WaitForChild('LeftFoot').CFrame * CFrame.new(0, 0, -12)
-            e.MenuRings.Bank.Floor.CFrame = I:WaitForChild('LeftFoot').CFrame * CFrame.new(0, 0, -12)
+            local leftFootCFrame = I:WaitForChild('LeftFoot').CFrame
+            e.MenuRings.Bank.Ring.CFrame = leftFootCFrame * CFrame.new(0, 0, -12)
+            e.MenuRings.Bank.Floor.CFrame = leftFootCFrame * CFrame.new(0, 0, -12)
         end
     end
 })
+
+-- Nút "Upgrade"
 bH:Button({
     Text = "Upgrade",
     TextSize = 22,
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.ItemUpgrade):Toggle()
+        local success, err = pcall(function()
+            require(k.Client.Gui.GuiScripts.ItemUpgrade):Toggle()
+        end)
+        if not success then
+            warn("Error toggling upgrade: " .. tostring(err))
+        end
     end
 })
+
+-- Nút "Zero Altar"
 bH:Button({
     Text = "Zero Altar",
     TextSize = 22,
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.Fusion):Open()
+        local success, err = pcall(function()
+            require(k.Client.Gui.GuiScripts.Fusion):Open()
+        end)
+        if not success then
+            warn("Error opening Zero Altar: " .. tostring(err))
+        end
     end
 })
+
+-- Nút "Way Stones"
 bH:Button({
     Text = "Way Stones",
     TextSize = 22,
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.Waystones):Open()
+        local success, err = pcall(function()
+            require(k.Client.Gui.GuiScripts.Waystones):Open()
+        end)
+        if not success then
+            warn("Error opening Way Stones: " .. tostring(err))
+        end
     end
 })
+
+-- Nút "World Menu"
 bH:Button({
     Text = "World Menu",
     TextSize = 22,
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.WorldTeleport):Toggle()
+        local success, err = pcall(function()
+            require(k.Client.Gui.GuiScripts.WorldTeleport):Toggle()
+        end)
+        if not success then
+            warn("Error toggling World Menu: " .. tostring(err))
+        end
     end
 })
+
+-- Nút "Dungeon Menu"
 bH:Button({
     Text = "Dungeon Menu",
     TextSize = 22,
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.MissionSelect):Toggle()
+        local success, err = pcall(function()
+            require(k.Client.Gui.GuiScripts.MissionSelect):Toggle()
+        end)
+        if not success then
+            warn("Error toggling Dungeon Menu: " .. tostring(err))
+        end
     end
 })
 
-al.MolPass=true
+-- Khởi tạo biến MoLPassive
+al.MolPass = true
 local MoLPass = bI:Toggle({
     Text = "MoLPassive",
     TextSize = 22,
     TextColor = Color3.fromRGB(255, 187, 109),
     Font = Enum.Font.FredokaOne,
-    Enabled = al.MoLPass,
+    Enabled = al.MolPass,
     Callback = function(aJ)
-        al.MoLPass = aJ;
+        al.MolPass = aJ
         task.spawn(function()
-            while al.MoLPass do
+            while al.MolPass do
                 local character = e.Characters[H.Name]
-                local cg = require(k.Shared.Party):GetPartyByUsername(H.Name)
-                if character and character.HealthProperties.Health.Value / character.HealthProperties.MaxHealth.Value *
-                    100 < 99 then
-                    for aA, ch in pairs(d:GetPlayers()) do
-                        if cg and cg.Members:FindFirstChild(ch.Name) then
-                            k.Shared.Combat.Skillsets.MageOfLight.HealCircle:FireServer(ch)
+                local party = require(k.Shared.Party):GetPartyByUsername(H.Name)
+
+                if character and character.HealthProperties.Health.Value / character.HealthProperties.MaxHealth.Value * 100 < 99 then
+                    for _, player in pairs(d:GetPlayers()) do
+                        if party and party.Members:FindFirstChild(player.Name) then
+                            k.Shared.Combat.Skillsets.MageOfLight.HealCircle:FireServer(player)
                         end
                     end
                 end
                 task.wait(14)
             end
         end)
+
         task.spawn(function()
             ak('WZ_Toggles', al)
-            while al.MoLPass do
+            while al.MolPass do
                 local character = e.Characters[H.Name]
-                local cg = require(k.Shared.Party):GetPartyByUsername(H.Name)
+                local party = require(k.Shared.Party):GetPartyByUsername(H.Name)
+
                 if character and character.HealthProperties.BarrierHealth.Value <= 0 then
-                    for aA, ch in pairs(d:GetPlayers()) do
-                        if cg and cg.Members:FindFirstChild(ch.Name) then
-                            k.Shared.Combat.Skillsets.MageOfLight.Barrier:FireServer(ch)
+                    for _, player in pairs(d:GetPlayers()) do
+                        if party and party.Members:FindFirstChild(player.Name) then
+                            k.Shared.Combat.Skillsets.MageOfLight.Barrier:FireServer(player)
                         end
                     end
                 end
@@ -2718,12 +3033,16 @@ local MoLPass = bI:Toggle({
     end
 })
 
+-- Xóa Barrier khi được tạo ra
 e.ChildAdded:Connect(function(ci)
     if ci.Name == 'BarrierPart' then
-        task.defer(ci.Destroy, ci)
+        task.defer(function()
+            if ci then ci:Destroy() end
+        end)
     end
 end)
-local hasRun = false  -- Đặt biến này ra ngoài hàm Connect để duy trì giá trị đúng cách
+
+-- Khởi tạo biến RepeatRaid
 al.RepeatRaid = true
 local RepeatRaid = bI:Toggle({
     Text = "RepeatRaid",
@@ -2732,113 +3051,119 @@ local RepeatRaid = bI:Toggle({
     Font = Enum.Font.FredokaOne,
     Enabled = al.RepeatRaid,
     Callback = function(aJ)
-        al.RepeatRaid = aJ;
+        al.RepeatRaid = aJ
         task.spawn(function()
             ak('WZ_Toggles', al)
-            for aA, B in pairs(_) do
-                if game.PlaceId ~= B and al.RepeatRaid then
-                    local cj = H.PlayerGui.MissionRewards.MissionRewards;
-                    if cj.Playerlist.Visible then
-                        S:SetLeaveChoice(H, true)
-                        S:NotifyReadyToLeave(H)
+
+            while al.RepeatRaid do
+                if not al.RepeatRaid then break end
+
+                for _, B in pairs(_) do
+                    if game.PlaceId ~= B and al.RepeatRaid then
+                        local rewardsGui = H.PlayerGui.MissionRewards.MissionRewards
+
+                        -- Kiểm tra điều kiện rời khỏi Tower hoặc Dungeon nếu thất bại
+                        if rewardsGui.Playerlist.Visible then
+                            S:SetLeaveChoice(H, true)
+                            S:NotifyReadyToLeave(H)
+                        end
+
+                        rewardsGui.RaidClear:GetPropertyChangedSignal('Text'):Connect(function()
+                            if rewardsGui.RaidClear.Text == 'T O W E R    F A I L U R E' or rewardsGui.RaidClear.Text == 'D U N G E O N    F A I L U R E' then
+                                S:SetLeaveChoice(H, true)
+                                S:NotifyReadyToLeave(H)
+                            end
+                        end)
                     end
-                    cj.RaidClear:GetPropertyChangedSignal('Text'):Connect(function()
-                        if cj.RaidClear.Text == 'T O W E R    F A I L U R E' then
-                            S:SetLeaveChoice(H, true)
-                            S:NotifyReadyToLeave(H)
-                        end
-                    end)
-                    cj.RaidClear:GetPropertyChangedSignal('Text'):Connect(function()
-                        if cj.RaidClear.Text == 'D U N G E O N    F A I L U R E' then
-                            S:SetLeaveChoice(H, true)
-                            S:NotifyReadyToLeave(H)
-                        end
-                    end)
-                    H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay:GetPropertyChangedSignal('Text'):Connect(function()
-                        if H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay.Text == 'Collect your rewards! (40)' and not hasRun then
-                            hasRun = true  -- Đặt biến cờ thành true ngay khi thiết lập webhook
-                            
-                            -- WEBHOOK
-                            local OSTime = os.time()
-                            local Time = os.date('!*t', OSTime)
-                            local Avatar = 'https://cdn.discordapp.com/embed/avatars/4.png'
-                            local Content = 'Treo Acc World//Zero AnyaTeam'
-
-                            -- Lấy tên nhân vật Roblox hiện tại
-                            local player = game.Players.LocalPlayer
-                            local playerName = player.Name
-
-                            -- Kiểm tra xem liệu có tồn tại thông tin trong ReplicatedStorage không
-                            local playerProfile = game.ReplicatedStorage:FindFirstChild("Profiles"):FindFirstChild(playerName)
-                            local goldValue = 0
-                            if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
-                                goldValue = playerProfile.Currency.Gold.Value
-                            end
-
-                            local Embed = {
-                                title = 'World//Zero',
-                                color = 99999, -- Sửa lại màu là số nguyên
-                                footer = { text = game.JobId },
-                                author = {
-                                    name = 'MAI HOÀNG PHI',
-                                    url = 'https://www.roblox.com/',
-                                },
-                                fields = {
-                                    {
-                                        name = playerName,
-                                        value = tostring(goldValue) -- Chuyển giá trị vàng thành chuỗi
-                                    },
-                                    {
-                                        name = 'NGÀY VÀ GIỜ',
-                                        value = os.date('%Y-%m-%d %H:%M:%S', OSTime) -- Ngày và giờ hiện tại
-                                    }
-                                },
-                                timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec),
-                            }
-
-                            local function sendEmbed(embedContent)
-                                (syn and syn.request or http_request) {
-                                    Url = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw',
-                                    Method = 'POST',
-                                    Headers = {
-                                        ['Content-Type'] = 'application/json'
-                                    },
-                                    Body = game:GetService('HttpService'):JSONEncode({
-                                        content = Content,
-                                        embeds = {embedContent}
-                                    })
-                                }
-                            end
-
-                            sendEmbed(Embed)
-                        end
-
-                        if H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay.Text == 'Collect your rewards! (14)' then
-                            S:SetLeaveChoice(H, true)
-                            S:NotifyReadyToLeave(H)
-                        end
-                    end)
-                    cj.Playerlist.Header:GetPropertyChangedSignal('Visible'):Connect(function()
-                        wait(1)
-                        aT(cj.Playerlist.WithParty.TextLabel)
-                    end)
                 end
+
+                task.wait(10) -- Điều chỉnh thời gian nếu cần thiết
             end
         end)
     end
 })
 
+                  -- Sự kiện kiểm tra và gửi webhook khi kết thúc Tower
+H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay:GetPropertyChangedSignal('Text'):Connect(function()
+    if H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay.Text == 'Collect your rewards! (40)' and not hasRun then
+        hasRun = true  -- Đặt biến cờ thành true ngay khi thiết lập webhook
 
+        -- Thiết lập webhook
+        local OSTime = os.time()
+        local Time = os.date('!*t', OSTime)
+        local Avatar = 'https://cdn.discordapp.com/embed/avatars/4.png'
+        local Content = 'Treo Acc World//Zero AnyaTeam'
+
+        -- Lấy tên nhân vật Roblox hiện tại
+        local player = game.Players.LocalPlayer
+        local playerName = player.Name
+
+        -- Kiểm tra thông tin trong ReplicatedStorage
+        local playerProfile = game.ReplicatedStorage:FindFirstChild("Profiles"):FindFirstChild(playerName)
+        local goldValue = 0
+        if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
+            goldValue = playerProfile.Currency.Gold.Value
+        end
+
+        local Embed = {
+            title = 'World//Zero',
+            color = 99999, -- Sửa lại màu là số nguyên
+            footer = { text = game.JobId },
+            author = {
+                name = 'MAI HOÀNG PHI',
+                url = 'https://www.roblox.com/',
+            },
+            fields = {
+                { name = playerName, value = tostring(goldValue) },
+                { name = 'NGÀY VÀ GIỜ', value = os.date('%Y-%m-%d %H:%M:%S', OSTime) }
+            },
+            timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec),
+        }
+
+        local function sendEmbed(embedContent)
+            pcall(function()
+                (syn and syn.request or http_request) {
+                    Url = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw',
+                    Method = 'POST',
+                    Headers = { ['Content-Type'] = 'application/json' },
+                    Body = game:GetService('HttpService'):JSONEncode({
+                        content = Content,
+                        embeds = {embedContent}
+                    })
+                }
+            end)
+        end
+
+        sendEmbed(Embed)
+    end
+
+    if H.PlayerGui.TowerFinish.TowerFinish.Description.Overlay.Text == 'Collect your rewards! (14)' then
+        S:SetLeaveChoice(H, true)
+        S:NotifyReadyToLeave(H)
+    end
+end)
+
+-- Kết nối sự kiện khi Playerlist thay đổi để nhấn vào nút "WithParty"
+cj.Playerlist.Header:GetPropertyChangedSignal('Visible'):Connect(function()
+    wait(1)
+    aT(cj.Playerlist.WithParty.TextLabel)
+end)
+
+-- Tạo Slider để thay đổi tốc độ đi bộ
 bJ:Slider("WalkSpeed", 16, 120, K.WalkSpeed, function(bW)
     K.WalkSpeed = bW
 end)
 
+-- Thực hiện các tác vụ UI
 bK:DestroyUI()
 bK:HideUI()
 bL:MinimizeWindows()
+
+-- Sự kiện khi nhiệm vụ kết thúc để gửi webhook
 k.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
     bG.Text = "EndTime: " .. os.date("%I:%M %p")
-    -- WEBHOOK
+
+    -- Thiết lập webhook
     local OSTime = os.time()
     local Time = os.date('!*t', OSTime)
     local Avatar = 'https://cdn.discordapp.com/embed/avatars/4.png'
@@ -2848,7 +3173,7 @@ k.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
     local player = game.Players.LocalPlayer
     local playerName = player.Name
 
-    -- Kiểm tra xem liệu có tồn tại thông tin trong ReplicatedStorage không
+    -- Kiểm tra thông tin trong ReplicatedStorage
     local playerProfile = game.ReplicatedStorage:FindFirstChild("Profiles"):FindFirstChild(playerName)
     local goldValue = 0
     if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
@@ -2858,75 +3183,76 @@ k.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
     local Embed = {
         title = 'World//Zero',
         color = 99999, -- Sửa lại màu là số nguyên
-        footer = {
-            text = game.JobId
-        },
+        footer = { text = game.JobId },
         author = {
             name = 'MAI HOÀNG PHI',
             url = 'https://www.roblox.com/'
         },
-        fields = {{
-            name = playerName,
-            value = tostring(goldValue) -- Chuyển giá trị vàng thành chuỗi
-        }, {
-            name = 'NGÀY VÀ GIỜ',
-            value = os.date('%Y-%m-%d %H:%M:%S', OSTime) -- Ngày và giờ hiện tại
-        }},
-        timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min,
-            Time.sec)
+        fields = {
+            { name = playerName, value = tostring(goldValue) },
+            { name = 'NGÀY VÀ GIỜ', value = os.date('%Y-%m-%d %H:%M:%S', OSTime) }
+        },
+        timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec)
     }
 
     local function sendEmbed(embedContent)
-        (syn and syn.request or http_request) {
-            Url = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw',
-            Method = 'POST',
-            Headers = {
-                ['Content-Type'] = 'application/json'
-            },
-            Body = game:GetService('HttpService'):JSONEncode({
-                content = Content,
-                embeds = {embedContent}
-            })
-        }
+        pcall(function()
+            (syn and syn.request or http_request) {
+                Url = 'https://discord.com/api/webhooks/1249664506448187443/2me_mJp4i155tl1fayEFVaYIS-yzp9FNqQAGRyI1v4xe56MYdc8KDYBaA9Yw4Vevl3jw',
+                Method = 'POST',
+                Headers = { ['Content-Type'] = 'application/json' },
+                Body = game:GetService('HttpService'):JSONEncode({
+                    content = Content,
+                    embeds = {embedContent}
+                })
+            }
+        end)
     end
 
     sendEmbed(Embed)
 end)
 
+
 for aA, B in pairs(Y) do
     if game.PlaceId == B then
         local cj = H.PlayerGui.MissionRewards.MissionRewards;
         local cs = k.Shared.VIP.IsExtraDrop:InvokeServer()
+
+        -- Xử lý khi đếm ngược kết thúc
         cj.Countdown:GetPropertyChangedSignal('Text'):Connect(function()
             if cj.Countdown.Text == 'Pick up your gold! (1)' then
                 repeat
                     wait()
-                until cj.Chests.Visible and cj.Chests.Box1.Visible and cj.Chests.Box2.Visible and
-                    cj.Chests.Box1.ChestImage.Select.Visible;
+                until cj.Chests.Visible and cj.Chests.Box1.Visible and cj.Chests.Box2.Visible and cj.Chests.Box1.ChestImage.Select.Visible
+
                 repeat
                     aT(cj.Chests.Box1.ChestImage.Select)
-                    aT(cj.Chests.Box1.ChestImage.Select)
                     wait()
-                until cj.OpenChest.Countdown.text == '0'
+                until cj.OpenChest.Countdown.Text == '0'
+
                 repeat
                     wait()
-                until H.PlayerGui.LootReceived.LootReceived.Info.Skip.Close.ClassName == "ImageButton" and
-                    H.PlayerGui.LootReceived.LootReceived.Info.Skip.Close.Visible
+                until H.PlayerGui.LootReceived.LootReceived.Info.Skip.Close.ClassName == "ImageButton" and H.PlayerGui.LootReceived.LootReceived.Info.Skip.Close.Visible
+
                 repeat
                     aT(H.PlayerGui.LootReceived.LootReceived.Info.Skip.Sell)
                     wait()
-                until H.PlayerGui.MissionRewards.MissionRewards.Chests.Next.Visible
-                aT(H.PlayerGui.MissionRewards.MissionRewards.Chests.Next)
+                until cj.Chests.Next.Visible
+                aT(cj.Chests.Next)
             end
         end)
+
+        -- Xử lý khi thời gian mở rương đếm ngược về 0
         cj.OpenChest.Countdown:GetPropertyChangedSignal('Text'):Connect(function()
             if cj.OpenChest.Countdown.Text == '0' then
                 repeat
                     wait()
-                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible;
+                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest.Next.Visible
                 aT(cj.OpenChest.Next.TextLabel)
             end
         end)
+
+        -- Xử lý khi thêm ViewportFrame vào rương Box1
         cj.Chests.Box1.ChestImage.ChildAdded:Connect(function(ct)
             if ct.Name == 'ViewportFrame' and not cs then
                 aT(cj.OpenChest.Next.TextLabel)
@@ -2939,9 +3265,11 @@ for aA, B in pairs(Y) do
                 repeat
                     aT(cj.Chests.Box2.ChestImage.Select)
                     wait()
-                until cj.OpenChest.Countdown.text == '0'
+                until cj.OpenChest.Countdown.Text == '0'
             end
         end)
+
+        -- Xử lý khi thêm ViewportFrame vào rương Box2
         cj.Chests.Box2.ChestImage.ChildAdded:Connect(function(ct)
             if ct.Name == 'ViewportFrame' and cs then
                 wait()
@@ -2950,6 +3278,8 @@ for aA, B in pairs(Y) do
         end)
     end
 end
+
+-- Xử lý các nhiệm vụ cụ thể theo PlaceId
 if game.PlaceId == Y[2.1] then
     e.MissionObjects.ChildRemoved:Connect(function(cu)
         if cu.Name == 'MissionStart' then
@@ -2971,7 +3301,7 @@ if game.PlaceId == Y[2.1] then
     end)
     e.MissionObjects.Room4Trigger.ChildRemoved:Connect(function()
         wait(6)
-        J.CFrame = e.MissionObjects.WallsTrigger.CFrame;
+        J.CFrame = e.MissionObjects.WallsTrigger.CFrame
         wait(3)
         J.CFrame = e.MissionObjects.WallsFinalTrigger.CFrame
     end)
@@ -2981,6 +3311,8 @@ if game.PlaceId == Y[2.1] then
         end
     end)
 end
+
+-- Xử lý Cage Marker tại World 1-4
 if game.PlaceId == Y[1.4] then
     e.ChildAdded:Connect(function(cv)
         if cv.Name == 'Cage1Marker' then
@@ -2995,6 +3327,8 @@ if game.PlaceId == Y[1.4] then
         end
     end)
 end
+
+-- Xử lý các sự kiện trong World 3-1
 if game.PlaceId == Y[3.1] then
     e.MissionObjects.ChildRemoved:Connect(function(cw)
         if cw.Name == 'ProgressionBlocker1' then
@@ -3002,11 +3336,13 @@ if game.PlaceId == Y[3.1] then
         end
     end)
 end
+
+-- Xử lý sự kiện tại World 3
 if game.PlaceId == Y[3] then
     e.ChildAdded:Connect(function(cx)
         if cx.Name == 'IceWall' then
             wait(5)
-            AutoFarm.State = false;
+            AutoFarm.State = false
             J.CFrame = e.IceWall:FindFirstChild('Ring').CFrame
         end
     end)
@@ -3017,9 +3353,11 @@ if game.PlaceId == Y[3] then
         end
     end)
 end
+
+-- Xóa hitbox của TowerLegs
 local function cy()
     pcall(function()
-        for aA, B in pairs(e.MissionObjects.TowerLegs:GetDescendants()) do
+        for _, B in pairs(e.MissionObjects.TowerLegs:GetDescendants()) do
             if B.Name == 'hitbox' and not B.CanCollide then
                 B.Parent:Destroy()
             end
@@ -3029,6 +3367,8 @@ end
 if game.PlaceId == Y[4.1] then
     e.MissionObjects.TowerLegs.DescendantRemoving:Connect(cy)
 end
+
+-- Xử lý sự kiện tại World 6-1
 if game.PlaceId == Y[6.1] then
     e.MissionObjects.ChildRemoved:Connect(function(cu)
         if cu.Name == 'MissionStart' then
@@ -3043,6 +3383,8 @@ if game.PlaceId == Y[6.1] then
         end
     end)
 end
+
+-- Xử lý sự kiện tại World 7-1
 if game.PlaceId == Y[7.1] then
     e.MissionObjects.ChildRemoved:Connect(function(cu)
         if cu.Name == 'MissionStart' then
@@ -3051,17 +3393,21 @@ if game.PlaceId == Y[7.1] then
         end
     end)
 end
+
+-- Xử lý sự kiện tại Tower (Z[1])
 if game.PlaceId == Z[1] then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Get behind the active shield! (2)' then
-            AutoFarm.State = false;
-            J.CFrame = e.MissionObjects.IgnisShield.Ring.CFrame;
+            AutoFarm.State = false
+            J.CFrame = e.MissionObjects.IgnisShield.Ring.CFrame
             wait(3)
             aK()
             AutoFarm.State = true
         end
     end)
 end
+
+-- Xử lý sự kiện tại các Floor đặc biệt
 if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'Advance to the next floor! (24)' then
@@ -3074,17 +3420,21 @@ if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     end)
 end
 
+
+-- Xử lý sự kiện khi người chơi cần vào đấu trường để bắt đầu
 if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
         if H.PlayerGui.MissionObjective.MissionObjective.Label.Text == 'ENTER THE ARENA TO START!' then
-            AutoFarm.State = false;
-            J.CFrame = e.Boss_Gate.Interactions.Bounds.CFrame;
+            AutoFarm.State = false
+            J.CFrame = e.Boss_Gate.Interactions.Bounds.CFrame
             wait(3)
             aK()
             AutoFarm.State = true
         end
     end)
 end
+
+-- Xử lý các sự kiện tại các địa điểm đặc biệt
 for aA, B in pairs(Z) do
     if game.PlaceId == B then
         task.spawn(function()
@@ -3096,17 +3446,20 @@ for aA, B in pairs(Z) do
                 wait()
             end
         end)
+
+        -- Xử lý khi các đối tượng như Miniboss xuất hiện
         e.MissionObjects.ChildAdded:Connect(function(cB)
             if cB.Name == 'MinibossExitModel' then
                 wait(2)
-                e.MissionObjects.MinibossExitModel:MoveTo(J.Position)
-            end
-        end)
-        e.MissionObjects.ChildAdded:Connect(function(cC)
-            if cC.Name == 'MinibossExit' then
+                pcall(function()
+                    cB:MoveTo(J.Position)
+                end)
+            elseif cB.Name == 'MinibossExit' then
                 wait(3)
-                AutoFarm.State = false;
-                e.MissionObjects.MinibossExit.CFrame = J.CFrame;
+                AutoFarm.State = false
+                pcall(function()
+                    cB.CFrame = J.CFrame
+                end)
                 wait()
                 aK()
                 AutoFarm.State = true
@@ -3114,27 +3467,24 @@ for aA, B in pairs(Z) do
         end)
     end
 end
-for aA, B in ipairs(game:GetService("ReplicatedStorage").Shared.Effects.EffectScripts:GetChildren()) do
-    if hookfunction and B:IsA("ModuleScript") and
-        (string.find(B.Name, "Klaus") or string.find(B.Name, "Hades") or string.find(B.Name, "Prism") or
-            string.find(B.Name, "Taurha") or string.find(B.Name, "Kraken") or string.find(B.Name, "Anubis") or
-            string.find(B.Name, "Cerberus") or string.find(B.Name, "FallenKing")) then
+
+-- Hook các script hiệu ứng để loại bỏ một số hiệu ứng không mong muốn
+for _, B in ipairs(game:GetService("ReplicatedStorage").Shared.Effects.EffectScripts:GetChildren()) do
+    if hookfunction and B:IsA("ModuleScript") and (string.find(B.Name, "Klaus") or string.find(B.Name, "Hades") or string.find(B.Name, "Prism") or string.find(B.Name, "Taurha") or string.find(B.Name, "Kraken") or string.find(B.Name, "Anubis") or string.find(B.Name, "Cerberus") or string.find(B.Name, "FallenKing")) then
         local cD = require(B)
         hookfunction(cD, function()
             return nil
         end)
     end
 end
+
+-- Xử lý các sự kiện thêm hoặc xóa phần tử tại MissionObjects
 for A, B in pairs(Y) do
     if type(A) ~= "string" and game.PlaceId == B then
         if e:FindFirstChild('MissionObjects') then
-            local cE = e.MissionObjects;
+            local cE = e.MissionObjects
             cE.DescendantAdded:Connect(function(cz)
-                if cz:IsA 'TouchTransmitter' and not string.match(cz.Parent.Parent.Name, 'Damage') and
-                    not string.match(cz.Parent.Name, 'Killpart') and not string.match(cz.Parent.Name, '0') and
-                    not string.match(cz.Parent.Parent.Name, 'Darts') and
-                    not string.match(cz.Parent.Parent.Name, 'Spikes') and cz.Parent ~= 'MinibossExit' and
-                    cz.Parent.Parent ~= 'MinibossExitModel' then
+                if cz:IsA('TouchTransmitter') and not string.match(cz.Parent.Parent.Name, 'Damage') and not string.match(cz.Parent.Name, 'Killpart') and not string.match(cz.Parent.Name, '0') and not string.match(cz.Parent.Parent.Name, 'Darts') and not string.match(cz.Parent.Parent.Name, 'Spikes') and cz.Parent ~= 'MinibossExit' and cz.Parent.Parent ~= 'MinibossExitModel' then
                     wait(2)
                     pcall(function()
                         cz.Parent.CFrame = J.CFrame
@@ -3142,8 +3492,8 @@ for A, B in pairs(Y) do
                 end
             end)
             cE.DescendantAdded:Connect(function(cF)
-                if cF:IsA 'TouchTransmitter' and string.match(cF.Parent.Name, 'Trigger') then
-                    wait(3 / 2)
+                if cF:IsA('TouchTransmitter') and string.match(cF.Parent.Name, 'Trigger') then
+                    wait(1.5)
                     pcall(function()
                         cF.Parent.CFrame = J.CFrame
                     end)
@@ -3152,80 +3502,57 @@ for A, B in pairs(Y) do
         end
     end
 end
-for aA, cG in pairs(Z) do
+
+-- Xử lý sự kiện thêm hoặc xóa các phần tử trong MissionObjects
+for _, cG in pairs(Z) do
     if game.PlaceId == cG then
         e.ChildAdded:Connect(function(cH)
             if cH.Name == 'RaidChestGold' then
-                e.RaidChestGold.ChestBase.CFrame = J.CFrame;
                 wait(3.8)
-                
+                pcall(function()
+                    cH.ChestBase.CFrame = J.CFrame
+                end)
                 repeat
-                wait()
-                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible;
+                    wait()
+                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible
                 aT(cj.OpenChest.Next.TextLabel)
-            end
-        end)
-        e.ChildAdded:Connect(function(cI)
-            if cI.Name == 'RaidChestSilver' then
-                e.RaidChestSilver.ChestBase.CFrame = J.CFrame;
+            elseif cH.Name == 'RaidChestSilver' then
                 wait(3.8)
-                
+                pcall(function()
+                    cH.ChestBase.CFrame = J.CFrame
+                end)
                 repeat
-                wait()
-                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible;
+                    wait()
+                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible
                 aT(cj.OpenChest.Next.TextLabel)
-            end
-        end)
-        e.ChildAdded:Connect(function(cJ)
-            if cJ.Name == 'AtlanticChest' then
-                for aA, B in pairs(e:GetChildren()) do
-                    if B.ClassName == 'Model' and B.Name == 'AtlanticChest' then
-                        B.ChestBase.CFrame = J.CFrame
-                    end
-                end
-            end
-        end)
-        e.ChildAdded:Connect(function(cK)
-            if cK.Name == 'VolcanicChestTower' then
-                for aA, B in pairs(e:GetChildren()) do
-                    if B.ClassName == 'Model' and B.Name == 'VolcanicChestTower' then
+            elseif cH.Name == 'AtlanticChest' or cH.Name == 'VolcanicChestTower' then
+                for _, B in pairs(e:GetChildren()) do
+                    if B.ClassName == 'Model' and B.Name == cH.Name then
                         B.ChestBase.CFrame = J.CFrame
                     end
                 end
             end
         end)
         e.ChildRemoved:Connect(function(cH)
-            if cH.Name == 'RaidChestGold' and e:FindFirstChild 'RaidChestGold' then
-                e.RaidChestGold.ChestBase.CFrame = J.CFrame
+            if cH.Name == 'RaidChestGold' and e:FindFirstChild('RaidChestGold') then
+                pcall(function()
+                    cH.ChestBase.CFrame = J.CFrame
+                end)
                 repeat
-                wait()
-                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible;
+                    wait()
+                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible
                 aT(cj.OpenChest.Next.TextLabel)
-            end
-        end)
-        e.ChildRemoved:Connect(function(cI)
-            if cI.Name == 'RaidChestSilver' and e:FindFirstChild 'RaidChestSilver' then
-                e.RaidChestSilver.ChestBase.CFrame = J.CFrame
+            elseif cH.Name == 'RaidChestSilver' and e:FindFirstChild('RaidChestSilver') then
+                pcall(function()
+                    cH.ChestBase.CFrame = J.CFrame
+                end)
                 repeat
-                wait()
-                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible;
+                    wait()
+                until cj.OpenChest:WaitForChild("Next") and cj.OpenChest:FindFirstChild("Next").Visible
                 aT(cj.OpenChest.Next.TextLabel)
-            end
-        end)
-        e.ChildRemoved:Connect(function(cJ)
-            if cJ.Name == 'AtlanticChest' then
-                for aA, B in pairs(e:GetChildren()) do
-                    if B.ClassName == 'Model' and B.Name == 'AtlanticChest' and e:FindFirstChild 'AtlanticChest' then
-                        B.ChestBase.CFrame = J.CFrame
-                    end
-                end
-            end
-        end)
-        e.ChildRemoved:Connect(function(cK)
-            if cK.Name == 'VolcanicChestTower' then
-                for aA, B in pairs(e:GetChildren()) do
-                    if B.ClassName == 'Model' and B.Name == 'VolcanicChestTower' and
-                        e:FindFirstChild 'VolcanicChestTower' then
+            elseif cH.Name == 'AtlanticChest' or cH.Name == 'VolcanicChestTower' then
+                for _, B in pairs(e:GetChildren()) do
+                    if B.ClassName == 'Model' and B.Name == cH.Name and e:FindFirstChild(cH.Name) then
                         B.ChestBase.CFrame = J.CFrame
                     end
                 end
@@ -3233,7 +3560,9 @@ for aA, cG in pairs(Z) do
         end)
     end
 end
-for aA, B in pairs(Z) do
+
+-- Xử lý khi có prompt yêu cầu mua hàng
+for _, B in pairs(Z) do
     if game.PlaceId == B then
         c.PurchasePrompt.ProductPurchaseContainer.Animator.ChildAdded:Connect(function()
             pcall(function()
@@ -3242,75 +3571,79 @@ for aA, B in pairs(Z) do
         end)
         c.PurchasePrompt.ChildAdded:Connect(function(cL)
             if cL.Name == 'RobuxUpsellContainer' then
-                wait(1 / 3)
-                cL:Destroy()
+                wait(0.33)
+                pcall(function()
+                    cL:Destroy()
+                end)
             end
         end)
     end
 end
-for aA, B in pairs(_) do
+
+-- Xử lý khi người chơi tham gia các địa điểm cụ thể
+for _, B in pairs(_) do
     if game.PlaceId == B then
-        KillAura.State = false;
+        KillAura.State = false
         AutoFarm.State = false
     end
 end
+
+-- Cập nhật thông tin khi nhân vật mới xuất hiện
 local function cM(cN)
-    character = cN;
+    character = cN
     K = cN:WaitForChild('Humanoid')
     J = cN:WaitForChild('HumanoidRootPart')
-    aK()
+    aK()  -- Thực hiện một số cập nhật khi nhân vật xuất hiện
 end
 H.CharacterAdded:Connect(cM)
+
+-- Vô hiệu hóa idle kick để tránh bị đá khỏi game
 if getconnections then
-    for aA, B in next, getconnections(H.Idled) do
+    for _, B in pairs(getconnections(H.Idled)) do
         B:Disable()
     end
-end
-if not getconnections then
+else
     H.Idled:connect(function()
         a.VirtualUser:ClickButton2(Vector2.new())
     end)
 end
-H.CameraMaxZoomDistance = 60;
-local cO = H.CameraMinZoomDistance;
-H.CameraMinZoomDistance = 60;
-H.CameraMinZoomDistance = cO;
+
+-- Giới hạn khoảng cách zoom của camera
+H.CameraMaxZoomDistance = 60
+local cO = H.CameraMinZoomDistance
+H.CameraMinZoomDistance = 60
+H.CameraMinZoomDistance = cO
+
+-- Xử lý khi mất kết nối mạng
 game.NetworkClient.ChildRemoved:Connect(function(cP)
-    al.KillAura = false;
+    al.KillAura = false
     bJ.Text = "Disconnected"
 end)
-coroutine.wrap(function()
+
+-- Xử lý khi gặp thông báo lỗi từ hệ thống
+local function handleErrorPrompt()
     local cQ = c:WaitForChild("RobloxPromptGui")
     local cR = cQ:WaitForChild("promptOverlay")
     local cS = cR:WaitForChild("ErrorPrompt")
     local cT = cS:WaitForChild("MessageArea")
     local cU = cT:WaitForChild("ErrorFrame")
     local cV = cU:WaitForChild("ErrorMessage")
-    repeat
-        wait()
-    until string.find(cV.Text, "exploit")
-    if ap.DifficultyID <= 1 then
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
-    else
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
+
+    repeat wait() until string.find(cV.Text, "exploit") or string.find(cV.Text, "reconnect")
+
+    if string.find(cV.Text, "exploit") or string.find(cV.Text, "reconnect") then
+        if ap.DifficultyID <= 1 then
+            k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
+        else
+            k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
+        end
     end
-end)()
-coroutine.wrap(function()
-    local cQ = c:WaitForChild("RobloxPromptGui")
-    local cR = cQ:WaitForChild("promptOverlay")
-    local cS = cR:WaitForChild("ErrorPrompt")
-    local cT = cS:WaitForChild("MessageArea")
-    local cU = cT:WaitForChild("ErrorFrame")
-    local cV = cU:WaitForChild("ErrorMessage")
-    repeat
-        wait()
-    until string.find(cV.Text, "reconnect")
-    if ap.DifficultyID <= 1 then
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
-    else
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
-    end
-end)()
+end
+
+-- Chạy hàm để xử lý lỗi khi gặp
+coroutine.wrap(handleErrorPrompt)()
+
+-- Xử lý tự động kết nối lại khi gặp lỗi crash hoặc ngắt kết nối
 local cW = {
     DungeonID = a0[game.PlaceId],
     DifficultyID = S.GetDifficulty(),
@@ -3321,7 +3654,7 @@ if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
     ag('WZ_CrashRJ', cW)
     wait(1)
     if cW.Phase == 0 then
-        cW.Phase = 1;
+        cW.Phase = 1
         ak('WZ_CrashRJ', cW)
         an(ao)
         while wait(10) do
@@ -3329,7 +3662,7 @@ if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
         end
     end
     if cW.Phase == 1 then
-        cW.Phase = 0;
+        cW.Phase = 0
         ak('WZ_CrashRJ', cW)
         an(ao)
         if ap.DifficultyID <= 1 then
@@ -3340,14 +3673,16 @@ if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
     end
 end
 ak('WZ_CrashRJ', cW)
-local cX = function(cY, cZ)
+
+-- Hàm để tạo proxy cho các thuộc tính
+local function cX(cY, cZ)
     local c_ = {
         enabled = true,
         fake = cY[cZ],
-        fake_type = typeof(fake)
+        fake_type = typeof(cY[cZ])
     }
-    local d0;
-    local d1;
+    local d0, d1
+
     function c_:SetFake(d2, d3)
         if d3 then
             c_.fake = d2
@@ -3357,10 +3692,12 @@ local cX = function(cY, cZ)
             c_.fake = nil
         end
     end
+
     function c_:Destroy()
-        cY[cZ] = c_.fake;
+        cY[cZ] = c_.fake
         c_.enabled = false
     end
+
     if hookmetamethod then
         d0 = hookmetamethod(cY, '__index', function(self, d4)
             if self == cY and d4 == cZ and not checkcaller() and c_.enabled then
@@ -3371,30 +3708,35 @@ local cX = function(cY, cZ)
         d1 = hookmetamethod(cY, '__newindex', function(self, d4, d5)
             if self == cY and d4 == cZ and not checkcaller() and c_.enabled then
                 if typeof(d5) == c_.fake_type then
-                    c_.fake = d5;
+                    c_.fake = d5
                     return
                 else
-                    c_.fake = nil;
+                    c_.fake = nil
                     return
                 end
             end
             return d1(self, d4, d5)
         end)
-    else
-        return
     end
+
     return c_
-end;
+end
+
+-- Tạo proxy cho WalkSpeed và CameraMaxZoomDistance
 cX(K, 'WalkSpeed')
 cX(H, 'CameraMaxZoomDistance')
+
+-- Nếu không phải là MageOfLight, tắt tính năng MoLPass
 if ad ~= 'MageOfLight' then
     MoLPass.State = false
 end
+
+-- Cấu hình perk cho nhân vật
 local d6 = {}
 local d7 = ''
-local d8 = true;
+local d8 = true
 if am.PerkNames ~= nil and type(am.PerkNames) == 'table' then
-    for A, B in pairs(am.PerkNames) do
+    for _, _ in pairs(am.PerkNames) do
         d8 = false
     end
 end
@@ -3402,7 +3744,7 @@ if d8 then
     am.PerkNames = {}
     for A, B in pairs(T) do
         if type(B) == 'table' then
-            for C, d9 in pairs(B) do
+            for _, d9 in pairs(B) do
                 if type(d9) == 'table' then
                     for da, db in pairs(d9) do
                         if da == 2 then
@@ -3417,6 +3759,8 @@ if d8 then
 else
     ag('WZwebhook', am)
 end
+
+-- Bảng chứa thông tin về các thuộc tính
 local dc = {}
 local dd = {
     ['ResistFrost'] = 'Resist Frost',
@@ -3445,33 +3789,47 @@ local dd = {
     ['EliteBoss'] = 'Elite Boss',
     ['DodgeChance'] = 'Untouchable'
 }
+
+-- Ngắt kết nối sự kiện khi nhân vật bị xóa
 H.CharacterRemoving:Connect(function()
-    dg:Disconnect()
+    if dg then
+        dg:Disconnect()
+    end
 end)
+
+-- Đợi các UI cần thiết để hoạt động
 local ds = H:WaitForChild("PlayerGui")
 local cj = ds:WaitForChild("MissionRewards"):WaitForChild("MissionRewards")
 local dt = ds:WaitForChild("TowerFinish"):WaitForChild("TowerFinish")
 local du = cj:WaitForChild("Time")
 local dv = dt:WaitForChild("Description"):WaitForChild("Overlay")
+
 repeat
     wait()
-until du.Visible or dv.text == "Collect your rewards! (20)"
+until du.Visible or dv.Text == "Collect your rewards! (20)"
+
 wait(1)
-local dw = k.Profiles[H.Name].Currency.Gold.Value - de;
+
+-- Lấy giá trị vàng sau khi hoàn thành nhiệm vụ
+local dw = k.Profiles[H.Name].Currency.Gold.Value - de
 local dx = ""
 local dy = ""
+
 if not du.Visible then
     dx = "Tower Finished"
     dy = dt:WaitForChild("Time").Text
 else
-    dx = cj:WaitForChild("RaidClear").Text;
+    dx = cj:WaitForChild("RaidClear").Text
     dy = cj:WaitForChild("Time").Text
 end
+
 local dz = ''
 local dA = ''
-for A, B in pairs(V) do
+
+-- Tìm kiếm thông tin địa điểm hiện tại dựa vào bảng `V`
+for _, B in pairs(V) do
     if B.LiveID == game.PlaceId then
-        dz = B.Name;
+        dz = B.Name
         dA = B.NameTag
     end
 end
