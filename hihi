@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm traaaazxc
+    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaaxb
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
@@ -227,46 +227,51 @@ local lobbyId = {
 }
 
 local function isGameLoaded()
-    return game:IsLoaded()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
 end
 
 local function teleportIfInSpecificLobby()
     local success, err = pcall(function()
-        if game.PlaceId == 2727067538 then
-            warn("Teleporting from Main Menu to Hub 13")
-            local placeId = 4310463616
-            TeleportService:Teleport(placeId)
-        elseif game.PlaceId == 4310463616 then
-            warn("Teleporting from World 1 to Hub 34")
-            local replicatedStorage = game:GetService("ReplicatedStorage")
-            local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
+        if lobbyId[game.PlaceId] then
+            warn("Đang ở Lobby:", lobbyId[game.PlaceId])
+            
+            if game.PlaceId == 2727067538 then
+                warn("Teleporting from Main Menu to Hub 13")
+                TeleportService:Teleport(4310463616)
+            elseif game.PlaceId == 4310463616 then
+                warn("Teleporting from World 1 to Hub 34")
+                local replicatedStorage = game:GetService("ReplicatedStorage")
+                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
 
-            if teleportService then
-                local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                if startRaidEvent then
-                    startRaidEvent:FireServer(34)
-                    print("StartRaid event fired.")
+                if teleportService then
+                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
+                    if startRaidEvent then
+                        startRaidEvent:FireServer(34)
+                        print("StartRaid event fired.")
+                    else
+                        warn("StartRaid event not found!")
+                    end
                 else
-                    warn("StartRaid event not found!")
+                    warn("Teleport service not found!")
                 end
-            else
-                warn("Teleport service not found!")
-            end
-        elseif game.PlaceId == 10651517727 then
-            warn("Teleporting from Lobby 10651517727 to Hub 34")
-            local replicatedStorage = game:GetService("ReplicatedStorage")
-            local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
+            elseif game.PlaceId == 10651517727 then
+                warn("Teleporting from Lobby 10651517727 to Hub 34")
+                local replicatedStorage = game:GetService("ReplicatedStorage")
+                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
 
-            if teleportService then
-                local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                if startRaidEvent then
-                    startRaidEvent:FireServer(34)
-                    print("StartRaid event fired.")
+                if teleportService then
+                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
+                    if startRaidEvent then
+                        startRaidEvent:FireServer(34)
+                        print("StartRaid event fired.")
+                    else
+                        warn("StartRaid event not found!")
+                    end
                 else
-                    warn("StartRaid event not found!")
+                    warn("Teleport service not found!")
                 end
-            else
-                warn("Teleport service not found!")
             end
         end
     end)
@@ -276,46 +281,10 @@ local function teleportIfInSpecificLobby()
     end
 end
 
-function lobbyCheck()
-    for i, v in pairs(lobbyId) do
-        if game.PlaceId == i then
-            warn("Lobby:", v)
-            return true
-        end
-    end
-    return false
-end
-
-function dungeonCheck()
-    for i, v in pairs(dungeonId) do
-        if game.PlaceId == i then
-            warn("Dungeon:", v)
-            return true
-        end
-    end
-    return false
-end
-
-function towerCheck()
-    for i, v in pairs(towerId) do
-        if game.PlaceId == i then
-            warn("Tower:", v)
-            return true
-        end
-    end
-    return false
-end
-
 local function checkAndTeleport()
-    warn('Checking')
-
-    if isGameLoaded() then
-        teleportIfInSpecificLobby()
-    else
-        game.Loaded:Wait()
-        warn('Game Loaded')
-        teleportIfInSpecificLobby()
-    end
+    warn('Checking...')
+    isGameLoaded()
+    teleportIfInSpecificLobby()
 end
 
 local function mainCoroutine()
@@ -330,6 +299,7 @@ end
 
 -- Khởi chạy coroutine
 coroutine.wrap(mainCoroutine)()
+
 
 -- Định nghĩa các biến thời gian và nội dung thông báo
 local OSTime = os.time()
