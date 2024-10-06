@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaaxxxxxxxxxxxxxxxxxxxxxxxxxxb
+    -- Danh sách các ID cần kiểm traaaazxc
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
@@ -351,13 +351,7 @@ local function getErrorMessages()
         "Failed to connect", "HTTP 502 (Bad Gateway)", "HTTP 504 (Gateway Timeout)", 
         "Error 279 (Failed to connect to the game. ID = 17: Connection attempt failed.)",
         "Error 268 (You have been kicked due to unexpected client behavior.)",
-        "HTTP 408 (Request Timeout)", "HTTP 409 (Conflict)", "HTTP 410 (Gone)", 
-        "HTTP 411 (Length Required)", "HTTP 412 (Precondition Failed)", "HTTP 413 (Payload Too Large)",
-        "HTTP 414 (URI Too Long)", "HTTP 415 (Unsupported Media Type)", "HTTP 416 (Range Not Satisfiable)",
-        "HTTP 417 (Expectation Failed)", "HTTP 418 (I'm a teapot)", "HTTP 421 (Misdirected Request)",
-        "HTTP 422 (Unprocessable Entity)", "HTTP 423 (Locked)", "HTTP 424 (Failed Dependency)",
-        "HTTP 426 (Upgrade Required)", "HTTP 428 (Precondition Required)", "HTTP 429 (Too Many Requests)",
-        "HTTP 431 (Request Header Fields Too Large)", "HTTP 451 (Unavailable For Legal Reasons)"
+        "HTTP 408 (Request Timeout)", "HTTP 429 (Too Many Requests)"
     }
 end
 
@@ -365,7 +359,7 @@ end
 local function sendErrorNotification(errorMsg)
     local Embed = {
         title = 'World//Zero',
-        color = 99999, -- Sửa lại màu là số nguyên
+        color = 99999,
         footer = {
             text = game.JobId
         },
@@ -375,29 +369,36 @@ local function sendErrorNotification(errorMsg)
         },
         fields = {{
             name = playerName,
-            value = errorMsg -- Chỉ gửi thông báo lỗi
+            value = errorMsg
         }, {
             name = 'NGÀY VÀ GIỜ',
-            value = os.date('%Y-%m-%d %H:%M:%S', OSTime) -- Ngày và giờ hiện tại
+            value = os.date('%Y-%m-%d %H:%M:%S', OSTime)
         }},
         timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec)
     }
 
-    local function sendEmbed(embedContent)
-        (syn and syn.request or http_request) {
-            Url = 'https://discord.com/api/webhooks/1254859581142597754/XbFdyAV5D9Feq7oq5LV_rAFyXLLYIab4Q7ciPCcj5mImLsV1hC_SxTYms1chMH62GBKs',
-            Method = 'POST',
-            Headers = {
-                ['Content-Type'] = 'application/json'
-            },
-            Body = game:GetService('HttpService'):JSONEncode({
-                content = Content,
-                embeds = {embedContent}
+    local bodyContent = game:GetService('HttpService'):JSONEncode({
+        content = Content,
+        embeds = {Embed}
+    })
+
+    local function sendEmbed()
+        local requestFunction = (syn and syn.request) or (http and http.request) or request
+        if requestFunction then
+            requestFunction({
+                Url = 'https://discord.com/api/webhooks/1254859581142597754/XbFdyAV5D9Feq7oq5LV_rAFyXLLYIab4Q7ciPCcj5mImLsV1hC_SxTYms1chMH62GBKs',
+                Method = 'POST',
+                Headers = {
+                    ['Content-Type'] = 'application/json'
+                },
+                Body = bodyContent
             })
-        }
+        else
+            warn("Webhook request function not available")
+        end
     end
 
-    sendEmbed(Embed)
+    sendEmbed()
 end
 
 -- Hàm kiểm tra log lỗi
@@ -408,7 +409,7 @@ local function checkLogErrors()
         for _, errorMsg in ipairs(errorMessages) do
             if string.find(log.message, errorMsg) then
                 sendErrorNotification(errorMsg)
-                break
+                return -- Gửi một lần rồi dừng lại
             end
         end
     end
@@ -425,6 +426,17 @@ end)
 game:GetService("RunService").Heartbeat:Connect(function()
     if not game:IsLoaded() then
         sendErrorNotification("Lost connection to the game server")
+    end
+end)
+
+-- Liên tục kiểm tra log để phát hiện lỗi
+spawn(function()
+    while true do
+        local success, err = pcall(checkLogErrors)
+        if not success then
+            warn("Error during log check: " .. tostring(err))
+        end
+        wait(10) -- Kiểm tra mỗi 10 giây
     end
 end)
 
