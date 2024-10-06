@@ -1,5 +1,5 @@
 local success, err = pcall(function()
-    -- Danh sách các ID cần kiểm traarrrrrrrrraaaxb
+    -- Danh sách các ID cần kiểm traaaaaaaaaaaaaaaaaaaaxb
     local blacklistedIds = {
         6891908, 612441167, 1704534226, 2825905714, 14696452, 792733, 17258879, 
         7764425, 22306125, 51645737, 155639345, 46522586, 178724273, 420124805, 
@@ -188,110 +188,154 @@ print("Coroutine started")
 local TeleportService = game:GetService("TeleportService")
 
 local dungeonId = {
-    [2978696440] = 'Crabby Crusade (1-1)',
-    [4310476380] = 'Scarecrow Defense (1-2)',
-    -- (Các dungeon khác)
+    --a world 1
+    [2978696440] = 'Crabby Crusade (1-1)', 
+    [4310476380] = 'Scarecrow Defense (1-2)', 
+    [4310464656] = 'Dire Problem (1-3)',
+    [4310478830] = 'Kingslayer (1-4)',
+    [3383444582] = 'Gravetower Dungeon (1-5)',
+    
+    [3885726701] = 'Temple of Ruin (2-1)',
+    [3994953548] = 'Mama Trauma (2-2)',
+    [4050468028] = "Volcano's Shadow (2-3)",
+    [3165900886] = 'Volcano Dungeon (2-4)',
+    
+    [4465988196] = 'Mountain Pass (3-1)',
+    [4465989351] = 'Winter Cavern (3-2)',
+    [4465989998] = 'Winter Dungeon (3-3)',
+
+    [4646473427] = 'Scrap Canyon (4-1)',
+    [4646475342] = 'Deserted Burrowmine (4-2)',
+    [4646475570] = 'Pyramid Dungeon (4-3)',
+    
+    [6386112652] = 'Konoh Heartlands (5-1)',
+    [6510862058] = 'Atlantic Atoll (6-1)',
+    [6847034886] = 'Mezuvia Skylands (7-1)',
+    [10795158121] = 'Gold Farming'
+}
+
+local towerId = {
+    [5703353651] = 'Prison Tower',
+    [6075085184] = 'Atlantis Tower',
+    [7071564842] = 'Mezuvian Tower'
 }
 
 local lobbyId = {
     [2727067538] = 'Main menu',
     [4310463616] = 'World 1',
-    -- (Các lobby khác)
+    [4310463940] = 'World 2',
+    [4465987684] = 'World 3',
+    [4646472003] = 'World 4',
+    [5703355191] = 'World 5',
+    [6075083204] = 'World 6',
+    [6847035264] = 'World 7'
 }
 
 local function isGameLoaded()
-    if not game:IsLoaded() then
-        game.Loaded:Wait()
-    end
+    -- Kiểm tra nếu game đã tải xong
+    return game:IsLoaded()
 end
 
 local function teleportIfInSpecificLobby()
-    local success, err = pcall(function()
-        if lobbyId[game.PlaceId] then
-            warn("Đang ở Lobby:", lobbyId[game.PlaceId])
-            
-            if game.PlaceId == 2727067538 then
-                warn("Teleporting from Main Menu to Hub 13")
-                TeleportService:Teleport(4310463616)
-            elseif game.PlaceId == 4310463616 then
-                warn("Teleporting from World 1 to Hub 34")
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
+    -- Kiểm tra và thực hiện dịch chuyển nếu người dùng ở 'Main menu' hoặc 'World 1' hoặc Lobby 10651517727
+    if game.PlaceId == 2727067538 then
+        warn("Teleporting from Main Menu to Hub 13")
+        local placeId = 4310463616  -- ID của nơi bạn muốn chuyển đến
+        TeleportService:Teleport(placeId)
+    elseif game.PlaceId == 4310463616 then
+        warn("Teleporting from World 1 to Hub 34")
+        local args = {
+            [1] = 34
+        }
 
-                if teleportService then
-                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                    if startRaidEvent then
-                        startRaidEvent:FireServer(34)
-                        print("StartRaid event fired.")
-                    else
-                        warn("StartRaid event not found!")
-                    end
-                else
-                    warn("Teleport service not found!")
-                end
-            elseif game.PlaceId == 10651517727 then
-                warn("Teleporting from Lobby 10651517727 to Hub 34")
-                local replicatedStorage = game:GetService("ReplicatedStorage")
-                local teleportService = replicatedStorage:WaitForChild("Shared", 5):FindFirstChild("Teleport")
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local teleportService = replicatedStorage:WaitForChild("Shared", 5):WaitForChild("Teleport", 5)
+        local startRaidEvent = teleportService:WaitForChild("StartRaid", 5)
 
-                if teleportService then
-                    local startRaidEvent = teleportService:FindFirstChild("StartRaid")
-                    if startRaidEvent then
-                        startRaidEvent:FireServer(34)
-                        print("StartRaid event fired.")
-                    else
-                        warn("StartRaid event not found!")
-                    end
-                else
-                    warn("Teleport service not found!")
-                end
-            end
+        if startRaidEvent then
+            startRaidEvent:FireServer(unpack(args))
+            print("StartRaid event fired.")
+        else
+            warn("StartRaid event not found!")
         end
-    end)
+    elseif game.PlaceId == 10651517727 then
+        warn("Teleporting from Lobby 10651517727 to Hub 34")
+        local args = {
+            [1] = 34
+        }
 
-    if not success then
-        warn("Error during teleport: " .. err)
+        local replicatedStorage = game:GetService("ReplicatedStorage")
+        local teleportService = replicatedStorage:WaitForChild("Shared", 5):WaitForChild("Teleport", 5)
+        local startRaidEvent = teleportService:WaitForChild("StartRaid", 5)
+
+        if startRaidEvent then
+            startRaidEvent:FireServer(unpack(args))
+            print("StartRaid event fired.")
+        else
+            warn("StartRaid event not found!")
+        end
     end
 end
 
+
+
+function lobbyCheck()
+    for i,v in pairs(lobbyId) do
+        if game.PlaceId == i then
+            warn("Lobby:", v)
+            return true
+        end
+    end
+    return false
+end
+
+function dungeonCheck()
+    for i,v in pairs(dungeonId) do
+        if game.PlaceId == i then
+            warn("Dungeon:", v)
+            return true
+        end
+    end
+    return false
+end 
+
+function towerCheck()
+    for i,v in pairs(towerId) do
+        if game.PlaceId == i then
+            warn("Tower:", v)
+            return true
+        end
+    end
+    return false
+end
+
 local function checkAndTeleport()
-    warn('Checking...')
-    isGameLoaded()
-    teleportIfInSpecificLobby()
+    warn('Checking')
+
+    if isGameLoaded() then
+        local inLobby = lobbyCheck()
+        local inDungeon = dungeonCheck()
+        local inTower = towerCheck()
+        teleportIfInSpecificLobby()
+    else
+        game.Loaded:Wait()
+        warn('Game Loaded')
+        local inLobby = lobbyCheck()
+        local inDungeon = dungeonCheck()
+        local inTower = towerCheck()
+        teleportIfInSpecificLobby()
+    end
 end
 
 local function mainCoroutine()
     while true do
-        local success, err = pcall(checkAndTeleport)
-        if not success then
-            warn("Error during checkAndTeleport: " .. err)
-        end
+        checkAndTeleport()
         wait(10)
     end
 end
 
--- Xử lý các sự kiện liên quan đến teleport
-TeleportService.TeleportInitFailed:Connect(function(player, teleportResult, errorMessage)
-    warn("Teleport failed for player " .. player.Name .. ": " .. errorMessage)
-end)
-
-TeleportService.TeleportStateChanged:Connect(function(teleportState)
-    if teleportState == Enum.TeleportState.Started then
-        warn("Teleport started.")
-    elseif teleportState == Enum.TeleportState.Failed then
-        warn("Teleport failed.")
-    elseif teleportState == Enum.TeleportState.InProgress then
-        warn("Teleport in progress.")
-    elseif teleportState == Enum.TeleportState.Completed then
-        warn("Teleport completed.")
-    end
-end)
-
--- Khởi chạy coroutine chính
+-- Khởi chạy coroutine
 coroutine.wrap(mainCoroutine)()
-
-
-
 -- Định nghĩa các biến thời gian và nội dung thông báo
 local OSTime = os.time()
 local Time = os.date('!*t', OSTime)
@@ -312,7 +356,13 @@ local function getErrorMessages()
         "Failed to connect", "HTTP 502 (Bad Gateway)", "HTTP 504 (Gateway Timeout)", 
         "Error 279 (Failed to connect to the game. ID = 17: Connection attempt failed.)",
         "Error 268 (You have been kicked due to unexpected client behavior.)",
-        "HTTP 408 (Request Timeout)", "HTTP 429 (Too Many Requests)"
+        "HTTP 408 (Request Timeout)", "HTTP 409 (Conflict)", "HTTP 410 (Gone)", 
+        "HTTP 411 (Length Required)", "HTTP 412 (Precondition Failed)", "HTTP 413 (Payload Too Large)",
+        "HTTP 414 (URI Too Long)", "HTTP 415 (Unsupported Media Type)", "HTTP 416 (Range Not Satisfiable)",
+        "HTTP 417 (Expectation Failed)", "HTTP 418 (I'm a teapot)", "HTTP 421 (Misdirected Request)",
+        "HTTP 422 (Unprocessable Entity)", "HTTP 423 (Locked)", "HTTP 424 (Failed Dependency)",
+        "HTTP 426 (Upgrade Required)", "HTTP 428 (Precondition Required)", "HTTP 429 (Too Many Requests)",
+        "HTTP 431 (Request Header Fields Too Large)", "HTTP 451 (Unavailable For Legal Reasons)"
     }
 end
 
@@ -320,7 +370,7 @@ end
 local function sendErrorNotification(errorMsg)
     local Embed = {
         title = 'World//Zero',
-        color = 99999,
+        color = 99999, -- Sửa lại màu là số nguyên
         footer = {
             text = game.JobId
         },
@@ -330,36 +380,29 @@ local function sendErrorNotification(errorMsg)
         },
         fields = {{
             name = playerName,
-            value = errorMsg
+            value = errorMsg -- Chỉ gửi thông báo lỗi
         }, {
             name = 'NGÀY VÀ GIỜ',
-            value = os.date('%Y-%m-%d %H:%M:%S', OSTime)
+            value = os.date('%Y-%m-%d %H:%M:%S', OSTime) -- Ngày và giờ hiện tại
         }},
         timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec)
     }
 
-    local bodyContent = game:GetService('HttpService'):JSONEncode({
-        content = Content,
-        embeds = {Embed}
-    })
-
-    local function sendEmbed()
-        local requestFunction = (syn and syn.request) or (http and http.request) or request
-        if requestFunction then
-            requestFunction({
-                Url = 'https://discord.com/api/webhooks/1254859581142597754/XbFdyAV5D9Feq7oq5LV_rAFyXLLYIab4Q7ciPCcj5mImLsV1hC_SxTYms1chMH62GBKs',
-                Method = 'POST',
-                Headers = {
-                    ['Content-Type'] = 'application/json'
-                },
-                Body = bodyContent
+    local function sendEmbed(embedContent)
+        (syn and syn.request or http_request) {
+            Url = 'https://discord.com/api/webhooks/1254859581142597754/XbFdyAV5D9Feq7oq5LV_rAFyXLLYIab4Q7ciPCcj5mImLsV1hC_SxTYms1chMH62GBKs',
+            Method = 'POST',
+            Headers = {
+                ['Content-Type'] = 'application/json'
+            },
+            Body = game:GetService('HttpService'):JSONEncode({
+                content = Content,
+                embeds = {embedContent}
             })
-        else
-            warn("Webhook request function not available")
-        end
+        }
     end
 
-    sendEmbed()
+    sendEmbed(Embed)
 end
 
 -- Hàm kiểm tra log lỗi
@@ -370,7 +413,7 @@ local function checkLogErrors()
         for _, errorMsg in ipairs(errorMessages) do
             if string.find(log.message, errorMsg) then
                 sendErrorNotification(errorMsg)
-                return -- Gửi một lần rồi dừng lại
+                break
             end
         end
     end
@@ -387,17 +430,6 @@ end)
 game:GetService("RunService").Heartbeat:Connect(function()
     if not game:IsLoaded() then
         sendErrorNotification("Lost connection to the game server")
-    end
-end)
-
--- Liên tục kiểm tra log để phát hiện lỗi
-spawn(function()
-    while true do
-        local success, err = pcall(checkLogErrors)
-        if not success then
-            warn("Error during log check: " .. tostring(err))
-        end
-        wait(10) -- Kiểm tra mỗi 10 giây
     end
 end)
 
