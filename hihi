@@ -538,6 +538,7 @@ function getItemName()
 end
 
 -- Hàm để kiểm tra nếu một món đồ có bất kỳ Perk hợp lệ nào
+-- Hàm để kiểm tra nếu một món đồ có đủ 3 Perk hợp lệ
 local function hasValidPerk(item)
     local validPerkCount = 0
     for _, perkName in ipairs({"Perk1", "Perk2", "Perk3"}) do
@@ -545,12 +546,14 @@ local function hasValidPerk(item)
         if perk then
             local perkValue = perk:FindFirstChild("PerkValue")
             if perkValue and isValidPerk(perk.Value, perkValue.Value) then
-                return true -- Nếu tìm thấy Perk hợp lệ, giữ lại món đồ
+                validPerkCount = validPerkCount + 1
             end
         end
     end
-    return false -- Không có Perk hợp lệ
+    -- Chỉ giữ lại nếu có đủ 3 Perk hợp lệ
+    return validPerkCount == 3
 end
+
 
 -- Định nghĩa hàm lọc đồ cần bán
 function ToSell()
