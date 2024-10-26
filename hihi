@@ -219,24 +219,23 @@ local success, err = pcall(function()
         end
     end
 
-    -- Tạo coroutine cho hàm kiểm tra
-    local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
+-- Tạo coroutine cho hàm kiểm tra
+local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
 
-    -- Chạy coroutine trong vòng lặp chính để tránh chặn
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if coroutine.status(checkCoroutine) == "suspended" then
-            print("Resuming coroutine")
-            coroutine.resume(checkCoroutine)
-        elseif coroutine.status(checkCoroutine) == "dead" then
-            print("Coroutine is dead, restarting...")
-            checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
-        end
-    end)
+-- Chạy coroutine trong vòng lặp chính để tránh chặn
+game:GetService("RunService").Heartbeat:Connect(function()
+    if coroutine.status(checkCoroutine) == "suspended" then
+        coroutine.resume(checkCoroutine)
+    elseif coroutine.status(checkCoroutine) == "dead" then
+        checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
+    end
+end)
 end)
 
 if not success then
     warn("Error occurred: ", err)
 end
+
 
 wait(10)
 local function improveFPS()
@@ -2187,10 +2186,6 @@ local function br()
                     for bs, B in pairs(ar[ad]) do
                         -- Kiểm tra các điều kiện của B và giá trị của aa
                         if os.clock() - B.last > B.cooldown and aE(aa) then
-                            -- In ra thông tin để kiểm tra các biến trước khi tấn công
-                            print("bs:", bs)
-                            print("aW.Position:", aW.Position)
-
                             -- Tạo args cho FireServer
                             local args = {
                                 [1] = bs,  -- bs là tên kỹ năng
@@ -2203,24 +2198,19 @@ local function br()
                                 game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
                             end)
 
-                            if not success then
-                                print("Lỗi khi gọi FireServer:", errorMsg)
-                            else
+                            if success then
                                 B.last = os.clock()
                                 aa = os.clock()
                             end
                         end
                     end
-                else
-                    print("Lỗi: ar[ad] không tồn tại")
                 end
-            else
-                print("Lỗi: aW hoặc aW.Position không hợp lệ")
             end
             task.wait()
         end
     end)
 end
+
 
 
 
@@ -2251,19 +2241,13 @@ local function bt()
                                 B.last = os.clock()
                                 aa = os.clock()
                                 break
-                            else
-                                print("Lỗi: Q hoặc J.Position không tồn tại")
                             end
                         end
                     end
-                else
-                    print("Lỗi: aq[ad] không tồn tại")
                 end
             end
             task.wait()
-        end
-    end)
-end
+            
 
 local function bu()
     task.spawn(function()
