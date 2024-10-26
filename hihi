@@ -1,5 +1,5 @@
 local TeleportService = game:GetService("TeleportService")
-local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportaaaaaaaaaaaaaaaaaaaaaaa
+local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleport
 
 local dungeonId = {
     [2978696440] = 'Crabby Crusade (1-1)', 
@@ -73,9 +73,6 @@ local function teleportIfInSpecificLobby()
 
             if startRaidEvent then
                 startRaidEvent:FireServer(unpack(args))
-                print("StartRaid event fired.")
-            else
-                warn("StartRaid event not found!")
             end
         elseif game.PlaceId == 10651517727 then
             warn("Teleporting from Lobby 10651517727 to Hub 34")
@@ -87,9 +84,6 @@ local function teleportIfInSpecificLobby()
 
             if startRaidEvent then
                 startRaidEvent:FireServer(unpack(args))
-                print("StartRaid event fired.")
-            else
-                warn("StartRaid event not found!")
             end
         end
     end)
@@ -219,23 +213,22 @@ local success, err = pcall(function()
         end
     end
 
--- Tạo coroutine cho hàm kiểm tra
-local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
+    -- Tạo coroutine cho hàm kiểm tra
+    local checkCoroutine = coroutine.create(checkBlacklistedPlayers)
 
--- Chạy coroutine trong vòng lặp chính để tránh chặn
-game:GetService("RunService").Heartbeat:Connect(function()
-    if coroutine.status(checkCoroutine) == "suspended" then
-        coroutine.resume(checkCoroutine)
-    elseif coroutine.status(checkCoroutine) == "dead" then
-        checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
-    end
-end)
+    -- Chạy coroutine trong vòng lặp chính để tránh chặn
+    game:GetService("RunService").Heartbeat:Connect(function()
+        if coroutine.status(checkCoroutine) == "suspended" then
+            coroutine.resume(checkCoroutine)
+        elseif coroutine.status(checkCoroutine) == "dead" then
+            checkCoroutine = coroutine.create(checkBlacklistedPlayers)  -- Khởi tạo lại coroutine
+        end
+    end)
 end)
 
 if not success then
     warn("Error occurred: ", err)
 end
-
 
 wait(10)
 local function improveFPS()
@@ -330,7 +323,7 @@ end
 improveFPS()
 -- Định nghĩa hàm chạy sau 7 phút
 local function runAfter7Minutes()
-    print("runAfter7Minutes started")
+    
     -- Chờ 7 phút ( 620 giây)
     wait(720)
 
@@ -343,15 +336,12 @@ local function runAfter7Minutes()
     local startRaidEvent = teleportService:WaitForChild("StartRaid")
     if startRaidEvent then
         startRaidEvent:FireServer(unpack(args))
-        print("StartRaid event fired after 7 minutes.")
-    else
-        warn("StartRaid event not found!")
     end
 end
 
 -- Bắt đầu coroutine để không ảnh hưởng đến các hàm khác
 task.spawn(runAfter7Minutes)
-print("Coroutine started")
+
 
 
 -- Định nghĩa các biến thời gian và nội dung thông báo
@@ -2149,7 +2139,7 @@ elseif ad == 'IcefireMage' then
     ac = ac + bf()
 elseif ad == 'MageOfLight' then
     ab = 95;
-    ac = 1
+    ac = ac + bf()
 elseif ad == 'Dragoon' then
     ab = 15;
     a5 = 9 / 64 + bf()
@@ -2194,7 +2184,7 @@ local function br()
                             }
 
                             -- Gọi FireServer để kích hoạt tấn công
-                            local success, errorMsg = pcall(function()
+                            local success = pcall(function()
                                 game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
                             end)
 
@@ -2247,7 +2237,10 @@ local function bt()
                 end
             end
             task.wait()
-            
+        end
+    end)
+end
+
 
 local function bu()
     task.spawn(function()
