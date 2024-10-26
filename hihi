@@ -2150,7 +2150,7 @@ elseif ad == 'IcefireMage' then
     ac = ac + bf()
 elseif ad == 'MageOfLight' then
     ab = 95;
-    ac = ac + bf()
+    ac = 1
 elseif ad == 'Dragoon' then
     ab = 15;
     a5 = 9 / 64 + bf()
