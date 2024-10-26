@@ -1,5 +1,5 @@
 local TeleportService = game:GetService("TeleportService")
-local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleport
+local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportaaaaaaaaaaaaaaaaaaaaaaa
 
 local dungeonId = {
     [2978696440] = 'Crabby Crusade (1-1)', 
