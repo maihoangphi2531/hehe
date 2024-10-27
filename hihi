@@ -2180,7 +2180,7 @@ local function br()
                             local args = {
                                 [1] = bs,  -- bs là tên kỹ năng
                                 [2] = aW.Position,  -- Vị trí mục tiêu
-                                [4] = true  -- Một giá trị có thể là boolean
+                                [4] = 1  -- Một giá trị có thể là boolean
                             }
 
                             -- Gọi FireServer để kích hoạt tấn công
