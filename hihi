@@ -1,5 +1,5 @@
 local TeleportService = game:GetService("TeleportService")
-local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportaaaazxc
 
 local dungeonId = {
     [2978696440] = 'Crabby Crusade (1-1)', 
@@ -2136,10 +2136,10 @@ elseif ad == 'Paladin' then
     ac = ac + bf()
 elseif ad == 'IcefireMage' then
     ab = 95;
-    ac = 1
+    ac = ac + bf()
 elseif ad == 'MageOfLight' then
     ab = 95;
-    ac = 0.7
+    ac = ac + bf()
 elseif ad == 'Dragoon' then
     ab = 15;
     a5 = 9 / 64 + bf()
