@@ -1,5 +1,5 @@
 local TeleportService = game:GetService("TeleportService")
-local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportaaaazxc
+local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleport
 
 local dungeonId = {
     [2978696440] = 'Crabby Crusade (1-1)', 
@@ -25,7 +25,7 @@ local dungeonId = {
     [6510862058] = 'Atlantic Atoll (6-1)',
     [6847034886] = 'Mezuvia Skylands (7-1)',
     [10795158121] = 'Gold Farming',
-    [13988110964]='inf'
+    [13988110964] = 'inf'
 }
 
 local towerId = {
@@ -43,7 +43,7 @@ local lobbyId = {
     [5703355191] = 'World 5',
     [6075083204] = 'World 6',
     [6847035264] = 'World 7',
-    [10651517727]= 'world 9'
+    [10651517727] = 'world 9'
 }
 
 local function isGameLoaded()
@@ -53,7 +53,8 @@ end
 
 local function teleportIfInSpecificLobby()
     if isTeleporting then
-        return -- Nếu đang teleport, dừng tất cả các hoạt động khác
+        warn("Script đang dừng do teleport đang diễn ra.")
+        return -- Dừng lại nếu đã có teleport đang thực hiện
     end
 
     isTeleporting = true -- Đặt khóa để dừng các hoạt động khác
@@ -96,6 +97,8 @@ local function teleportIfInSpecificLobby()
     wait(10)
     isTeleporting = false
 end
+
+
 
 function lobbyCheck()
     for i, v in pairs(lobbyId) do
