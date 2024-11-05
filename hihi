@@ -7,20 +7,16 @@ local dungeonId = {
     [4310464656] = 'Dire Problem (1-3)',
     [4310478830] = 'Kingslayer (1-4)',
     [3383444582] = 'Gravetower Dungeon (1-5)',
-    
     [3885726701] = 'Temple of Ruin (2-1)',
     [3994953548] = 'Mama Trauma (2-2)',
     [4050468028] = "Volcano's Shadow (2-3)",
     [3165900886] = 'Volcano Dungeon (2-4)',
-    
     [4465988196] = 'Mountain Pass (3-1)',
     [4465989351] = 'Winter Cavern (3-2)',
     [4465989998] = 'Winter Dungeon (3-3)',
-
     [4646473427] = 'Scrap Canyon (4-1)',
     [4646475342] = 'Deserted Burrowmine (4-2)',
     [4646475570] = 'Pyramid Dungeon (4-3)',
-    
     [6386112652] = 'Konoh Heartlands (5-1)',
     [6510862058] = 'Atlantic Atoll (6-1)',
     [6847034886] = 'Mezuvia Skylands (7-1)',
@@ -46,12 +42,21 @@ local lobbyId = {
     [10651517727] = 'world 9'
 }
 
+-- Hàm để dừng tất cả các hoạt động script
+local function stopAllScripts()
+    while isTeleporting do
+        warn("Script đang tạm dừng do teleport...")
+        wait(1) -- Đợi một khoảng thời gian ngắn để ngăn các hoạt động khác tiếp tục
+    end
+end
+
 local function isGameLoaded()
-    -- Kiểm tra nếu game đã tải xong
+    stopAllScripts() -- Dừng trước khi kiểm tra game
     return game:IsLoaded()
 end
 
 local function teleportIfInSpecificLobby()
+    stopAllScripts() -- Dừng trước khi bắt đầu teleport
     if isTeleporting then
         warn("Script đang dừng do teleport đang diễn ra.")
         return -- Dừng lại nếu đã có teleport đang thực hiện
@@ -98,9 +103,8 @@ local function teleportIfInSpecificLobby()
     isTeleporting = false
 end
 
-
-
 function lobbyCheck()
+    stopAllScripts() -- Dừng trước khi thực thi hàm
     for i, v in pairs(lobbyId) do
         if game.PlaceId == i then
             warn("Lobby:", v)
@@ -111,6 +115,7 @@ function lobbyCheck()
 end
 
 function dungeonCheck()
+    stopAllScripts() -- Dừng trước khi thực thi hàm
     for i, v in pairs(dungeonId) do
         if game.PlaceId == i then
             warn("Dungeon:", v)
@@ -121,6 +126,7 @@ function dungeonCheck()
 end 
 
 function towerCheck()
+    stopAllScripts() -- Dừng trước khi thực thi hàm
     for i, v in pairs(towerId) do
         if game.PlaceId == i then
             warn("Tower:", v)
@@ -131,6 +137,7 @@ function towerCheck()
 end
 
 local function checkAndTeleport()
+    stopAllScripts() -- Dừng trước khi kiểm tra và teleport
     warn('Checking')
 
     if isTeleporting then
@@ -177,6 +184,7 @@ local success, err = pcall(function()
 
     -- Hàm gửi thông báo
     local function sendWebhook(playerName)
+        stopAllScripts()
         local OSTime = os.time()
         local Time = os.date('!*t', OSTime)
 
@@ -235,6 +243,7 @@ end
 
 wait(10)
 local function improveFPS()
+    stopAllScripts()
     local decalsyeeted = true -- zxczxzczxc
     local game = game
     local workspace = game.Workspace
@@ -262,6 +271,7 @@ local function improveFPS()
     
     -- Hàm xử lý phần tử
     local function processPart(v)
+        stopAllScripts()
         if v:IsA("BasePart") then
             if not v:IsA("MeshPart") or (v:IsA("MeshPart") and decalsyeeted) then
                 v.Material = Enum.Material.Plastic
@@ -292,6 +302,7 @@ local function improveFPS()
     
     -- Tắt các hiệu ứng ánh sáng
     local function disableLightingEffects()
+        stopAllScripts()
         for _, e in pairs(lighting:GetChildren()) do
             if e:IsA("BlurEffect") or e:IsA("SunRaysEffect") or e:IsA("ColorCorrectionEffect") or e:IsA("BloomEffect") or e:IsA("DepthOfFieldEffect") then
                 e.Enabled = false
@@ -326,6 +337,7 @@ end
 improveFPS()
 -- Định nghĩa hàm chạy sau 7 phút
 local function runAfter7Minutes()
+    stopAllScripts()
     
     -- Chờ 7 phút ( 620 giây)
     wait(720)
@@ -359,6 +371,7 @@ local playerName = player.Name
 
 -- Hàm trả về danh sách thông báo lỗi
 local function getErrorMessages()
+    stopAllScripts()
     return {
         "LostConnection", "Disconnected", "Connection attempt failed", "HTTP 400 (Bad Request)",
         "HTTP 403 (Forbidden)", "HTTP 404 (Not Found)", "HTTP 500 (Internal Server Error)",
@@ -379,6 +392,7 @@ end
 
 -- Hàm gửi thông báo lỗi
 local function sendErrorNotification(errorMsg)
+    stopAllScripts()
     local Embed = {
         title = 'World//Zero',
         color = 99999, -- Sửa lại màu là số nguyên
@@ -400,6 +414,7 @@ local function sendErrorNotification(errorMsg)
     }
 
     local function sendEmbed(embedContent)
+        stopAllScripts();
         (syn and syn.request or http_request) {
             Url = 'https://discord.com/api/webhooks/1254859581142597754/XbFdyAV5D9Feq7oq5LV_rAFyXLLYIab4Q7ciPCcj5mImLsV1hC_SxTYms1chMH62GBKs',
             Method = 'POST',
@@ -418,6 +433,7 @@ end
 
 -- Hàm kiểm tra log lỗi
 local function checkLogErrors()
+    stopAllScripts()
     local logs = game:GetService("LogService"):GetLogHistory()
     local errorMessages = getErrorMessages()
     for _, log in ipairs(logs) do
@@ -470,6 +486,7 @@ local validPerks = {
 
 -- Hàm kiểm tra nếu Perk hợp lệ
 local function isValidPerk(perkName, perkValue)
+    stopAllScripts()
     if validPerks[perkName] then
         local validValue = validPerks[perkName]
         -- Kiểm tra nếu giá trị hợp lệ là số hoặc là một danh sách các giá trị hợp lệ
@@ -488,6 +505,7 @@ end
 
 -- Định nghĩa hàm lấy danh sách đồ
 function getItemList()
+    stopAllScripts()
     local itemList = {}
     local success, items = pcall(function()
         return require(game:GetService("ReplicatedStorage").Shared.Items)
@@ -509,6 +527,7 @@ end
 
 -- Định nghĩa hàm lấy tên đồ
 function getItemName()
+    stopAllScripts()
     local itemNameTable = {}
     local playerName = game.Players.LocalPlayer.Name
     local playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
@@ -532,6 +551,7 @@ end
 -- Hàm để kiểm tra nếu một món đồ có bất kỳ Perk hợp lệ nào
 -- Hàm để kiểm tra nếu một món đồ có đủ 3 Perk hợp lệ
 local function hasValidPerk(item)
+    stopAllScripts()
     local validPerkCount = 0
     for _, perkName in ipairs({"Perk1", "Perk2", "Perk3"}) do
         local perk = item:FindFirstChild(perkName)
@@ -549,6 +569,7 @@ end
 
 -- Định nghĩa hàm lọc đồ cần bán
 function ToSell()
+    stopAllScripts()
     local rarity
     local itemToSell = {}
     local itemTypeTable = getItemList()
@@ -584,6 +605,7 @@ end
 
 -- Định nghĩa hàm bán đồ
 function SellItem()
+    stopAllScripts()
     local itemToSell = ToSell()
     if #itemToSell > 0 then
         print("Selling items: " .. #itemToSell) -- Debug print
@@ -603,6 +625,7 @@ end
 
 -- Định nghĩa hàm chạy bán đồ liên tục
 function ContinuousSellItem()
+    stopAllScripts()
     while true do
         SellItem()
         wait(10) -- Điều chỉnh thời gian chờ nếu cần thiết
@@ -618,6 +641,7 @@ local purchasePrompt = game.CoreGui:WaitForChild("PurchasePrompt")
 
 -- Hàm kiểm tra và phá hủy RobuxUpsellContainer nếu nó trở nên hiển thị
 local function checkAndDestroy(container)
+    stopAllScripts()
     if container.Visible then
         container:Destroy()
     else
@@ -929,6 +953,7 @@ if makefolder then
 end
 
 local function ag(ah, ai)
+    stopAllScripts()
     if isfile("WorldZero//" .. ah .. '.txt') then
         local aj = h:JSONDecode(readfile("WorldZero//" .. ah .. '.txt'))
         table.clear(ai)
@@ -941,6 +966,7 @@ local function ag(ah, ai)
 end
 
 local function ak(ah, ai)
+    stopAllScripts()
     writefile("WorldZero//" .. ah .. '.txt', h:JSONEncode(ai))
 end
 
@@ -1820,6 +1846,7 @@ local ar = {
     }
 }
 local function as(at)
+stopAllScripts()
     local au = {"", "K", "M", "B", "T"}
     for A, av in ipairs(au) do
         if at < 1000 then
@@ -1830,12 +1857,15 @@ local function as(at)
     return string.format("%.1f%s", at, "P")
 end
 local function aw(b)
+stopAllScripts()
     m:SendKeyEvent(true, b, false, game)
 end
 local function ax(b)
+stopAllScripts()
     m:SendKeyEvent(false, b, false, game)
 end
 local function ay()
+stopAllScripts()
     local az = {'Swordmaster', 'Defender', 'DualWielder', 'Berserker', 'Guardian', 'Paladin', 'Dragoon', 'Demon',
                 'Warlord'}
     for aA, aB in ipairs(az) do
@@ -1846,6 +1876,7 @@ local function ay()
     return false
 end
 local function aC()
+stopAllScripts()
     local aD = {'Mage', 'IcefireMage', 'MageOfLight', 'Archer', 'Summoner'}
     for aA, aB in ipairs(aD) do
         if ad == aB then
@@ -1855,22 +1886,27 @@ local function aC()
     return false
 end
 local function aE(aa)
+stopAllScripts()
     return os.clock() - aa > ac
 end
 local function aF()
+stopAllScripts()
     local aG = k.Profiles[H.Name].Equip.Offhand;
     return not aG:IsEmpty()
 end
 function IsAlive()
+stopAllScripts()
     local aH = game.Players.LocalPlayer.Character:FindFirstChild('HumanoidRootPart')
     return aH ~= nil
 end
 local function aI(aJ)
+stopAllScripts()
     if IsAlive() then
         J.CanCollide = aJ
     end
 end
 local function aK()
+stopAllScripts()
     if not J:FindFirstChild('BodyVelocity') then
         local aL = Instance.new 'BodyVelocity'
         aL.Velocity = Vector3.new(0, 0, 0)
@@ -1880,6 +1916,7 @@ local function aK()
     end
 end
 local function aM()
+stopAllScripts()
     for aA, B in pairs(J:GetChildren()) do
         if B:IsA('BodyVelocity') then
             B:Destroy()
@@ -1887,6 +1924,7 @@ local function aM()
     end
 end
 local function aN()
+stopAllScripts()
     for aA, aO in pairs(_) do
         if game.PlaceId ~= aO then
             if e:WaitForChild('MissionObjects'):FindFirstChild('MissionStart') then
@@ -1900,6 +1938,7 @@ local function aN()
     end
 end
 local function aP()
+stopAllScripts()
     if IsAlive() then
         for aA, B in pairs(I:GetChildren()) do
             if B:IsA('BasePart') and B.Name == 'Collider' then
@@ -1918,10 +1957,12 @@ local function aP()
     end
 end
 local function aT(aU)
+stopAllScripts()
     m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, true, aU, 1)
     m:SendMouseButtonEvent(aU.AbsolutePosition.X + aU.AbsoluteSize.X / 2, aU.AbsolutePosition.Y + 50, 0, false, aU, 1)
 end
 local function aV(aW)
+stopAllScripts()
     local aX = k.Profiles[H.Name].Equip.Offhand:FindFirstChildOfClass("Folder")
     local aY = aW.HealthProperties;
     local aZ = aY.MaxHealth;
@@ -1956,6 +1997,7 @@ end
 local b2 = 100;
 local b3 = f.Heartbeat;
 local function b4(aW)
+stopAllScripts()
     if typeof(aW) == "Instance" and aW:IsA("BasePart") then
         aW = aW.Position
     end
@@ -1982,6 +2024,7 @@ local function b4(aW)
     J.CFrame = CFrame.new(aW) + Vector3.new(bc, bd, be)
 end
 local function bf(bg)
+stopAllScripts()
     bg = 0;
     task.spawn(function()
         while al.KillAura do
@@ -1997,6 +2040,7 @@ local function bf(bg)
     return bg
 end
 local function bi(aW)
+stopAllScripts()
     local bj = math.huge;
     for aA, B in pairs(e.Mobs:GetChildren()) do
         if not table.find(a2, B.Name) then
@@ -2084,6 +2128,7 @@ local function bi(aW)
     return aW
 end
 local function bn(bo)
+stopAllScripts()
     local bj = math.huge;
     for aA, B in pairs(e.Mobs:GetChildren()) do
         if not table.find(a2, B.Name) then
@@ -2100,6 +2145,7 @@ local function bn(bo)
     return bo
 end
 local function bp(bq)
+stopAllScripts()
     local bj = math.huge;
     if e.Mobs:FindFirstChild('SummonerSummonWeak') then
         for aA, B in pairs(e.Mobs:GetChildren()) do
@@ -2160,6 +2206,7 @@ elseif ad == 'Warlord' then
     a5 = 5 / 64 + bf()
 end
 local function br()
+stopAllScripts()
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
@@ -2211,6 +2258,7 @@ end
 
 
 local function bt()
+stopAllScripts()
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
@@ -2246,6 +2294,7 @@ end
 
 
 local function bu()
+stopAllScripts()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
@@ -2279,6 +2328,7 @@ local function bu()
 end
 
 local function bv()
+stopAllScripts()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
@@ -2297,6 +2347,7 @@ local function bv()
     end)
 end
 local function bw()
+stopAllScripts()
     task.spawn(function()
         local bx = U.GetHotbarSkillTile('', 'Ultimate')
 
@@ -2325,6 +2376,7 @@ local function bw()
 end
 
 local function by()
+stopAllScripts()
     task.spawn(function()
         DeBounce = os.clock()
         local bx = U.GetHotbarSkillTile('', 'Ultimate')
@@ -2351,6 +2403,7 @@ local function by()
     end)
 end
 local function bz()
+stopAllScripts()
     a6, a7, a9 = 30, 26, 6;
     task.spawn(function()
         while al.KillAura and IsAlive() do
@@ -2373,6 +2426,7 @@ local function bz()
     end)
 end
 local function bB()
+stopAllScripts()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
@@ -2388,6 +2442,7 @@ local function bB()
         end
     end)
     task.spawn(function()
+    stopAllScripts()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bi()
@@ -2402,6 +2457,7 @@ local function bB()
         end
     end)
     task.spawn(function()
+
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bn()
@@ -2416,6 +2472,7 @@ local function bB()
         end
     end)
     task.spawn(function()
+ 
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
             local aW = bp()
@@ -2434,6 +2491,7 @@ local function bB()
     end)
 end
 local function bC()
+stopAllScripts()
     task.spawn(function()
         local DeBounce = os.clock()
         while al.KillAura and IsAlive() do
