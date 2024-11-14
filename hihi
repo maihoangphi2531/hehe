@@ -1,5 +1,5 @@
 local TeleportService = game:GetService("TeleportService")
-local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleport
+local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 local dungeonId = {
     [2978696440] = 'Crabby Crusade (1-1)', 
@@ -469,35 +469,29 @@ getgenv().Legendary = true
 
 -- Danh sách các giá trị perk và perkvalue cần giữ lại
 local validPerks = {
-    ["UltCharge"] = 0.15,
-    ["MobBoss"] = 0.30,
-    ["TestTier5"] = 0.30,
-    ["BurnChance"] = 0.15,
-    ["CritStack"] = 0.15,
-    ["GoldDrop"] = 0.20,
-    ["MasterThieft"] = 0.35,
-    ["Glass"] = {1.00, 1}, -- Có thể là 1 hoặc 1.00
-    ["BonusAttack"] = 0.08,
-    ["BonusWalkspeed"] = 0.15,
-    ["PetFoodDrop"] = 0.10,
-    ["DamageReduction"] = 0.08,
-    ["DodgeChane"] = 0.20
-}
+        ["UltCharge"] = {min = 0.15, max = 0.15},
+        ["MobBoss"] = {min = 0.30, max = 0.30},
+        ["TestTier5"] = {min = 0.30, max = 0.30},
+        ["BurnChance"] = {min = 0.15, max = 0.15},
+        ["CritStack"] = {min = 0.15, max = 0.15},
+        ["GoldDrop"] = {min = 0.20, max = 0.20},
+        ["MasterThieft"] = {min = 0.35, max = 0.35},
+        ["Glass"] = {min = 1.00, max = 1.00},
+        ["BonusAttack"] = {min = 0.08, max = 0.08},
+        ["BonusWalkspeed"] = {min = 0.15, max = 0.15},
+        ["PetFoodDrop"] = {min = 0.10, max = 0.10},
+        ["DamageReduction"] = {min = 0.08, max = 0.08},
+        ["DodgeChane"] = {min = 0.20, max = 0.20}
+    }
 
 -- Hàm kiểm tra nếu Perk hợp lệ
 local function isValidPerk(perkName, perkValue)
     stopAllScripts()
     if validPerks[perkName] then
-        local validValue = validPerks[perkName]
-        -- Kiểm tra nếu giá trị hợp lệ là số hoặc là một danh sách các giá trị hợp lệ
-        if type(validValue) == "table" then
-            for _, val in ipairs(validValue) do
-                if val == perkValue then
-                    return true
-                end
-            end
-        else
-            return validValue == perkValue
+        local validRange = validPerks[perkName]
+        -- Kiểm tra nếu giá trị nằm trong dải min và max
+        if perkValue >= validRange.min and perkValue <= validRange.max then
+            return true
         end
     end
     return false
@@ -548,60 +542,102 @@ function getItemName()
     return itemNameTable
 end
 
--- Hàm để kiểm tra nếu một món đồ có bất kỳ Perk hợp lệ nào
--- Hàm để kiểm tra nếu một món đồ có đủ 3 Perk hợp lệ
+
+-- Hàm để kiểm tra nếu một món đồ có ít nhất 1 Perk hợp lệ
 local function hasValidPerk(item)
     stopAllScripts()
-    local validPerkCount = 0
     for _, perkName in ipairs({"Perk1", "Perk2", "Perk3"}) do
         local perk = item:FindFirstChild(perkName)
         if perk then
             local perkValue = perk:FindFirstChild("PerkValue")
-            if perkValue and isValidPerk(perk.Value, perkValue.Value) then
-                validPerkCount = validPerkCount + 1
+            if perkValue then
+                print("Checking perk:", perk.Value, "with value:", perkValue.Value) -- Debug print
+                if isValidPerk(perk.Value, perkValue.Value) then
+                    print("Valid perk found:", perk.Value, "with value:", perkValue.Value) -- Debug print
+                    return true -- Dừng lại và trả về true nếu tìm thấy perk hợp lệ
+                end
             end
         end
     end
-    -- Chỉ giữ lại nếu có đủ 3 Perk hợp lệ
-    return validPerkCount == 3
+    return false -- Trả về false nếu không có perk nào hợp lệ
 end
 
 
--- Định nghĩa hàm lọc đồ cần bán
+-- Danh mục vũ khí và giáp
+local categorizedItems = {
+    Staff = {
+        "W10T5Staff", "W9T5Staff", "World8Tier5Staff", "WingsOfDare", "KrakenStaff", "Firecaster", "StaffOfScarabs", "WillOTheWisp", "CerberusStaff", "WickedStaff"
+    },
+    Armor = {
+        "W10T5Armor", "AngelArmor", "DragonKin", "World8Tier5Armor", "W9T5Armor", "NightTerror", "PhoenixPlate", "HolyArmor", "CloakOfEmbers", "WitchHunterArmor"
+    },
+    Greatsword = {
+        "W9T5Greatsword", "World8Tier5Greatsword", "Legacy", "SirensWatch", "VeryHotGreatsword", "WrappedGreatsword", "Permafrost", "Spirebane", "BrassGreatsword", "W10T5Greatsword"
+    },
+    Sword = {
+        "W10T5Longsword", "W9T5Longsword", "World8Tier5Longsword", "GuildedChampion", "Deeptrench", "IgnisTeeth", "Titanslayer", "VoidSlayer", "ThrasherLongsword", "SpireSlayer"
+    },
+    Bow = {
+        "W10T5Bow", "W9T5Bow", "World8Tier5Bow", "GreatBow", "SirensSong", "IgnisDraw", "Royalty", "WintersBite", "Thornmaker", "WickedBow"
+    },
+    Scythe = {
+        "W10T5Scythe", "W9T5Scythe", "World8Tier5Scythe", "GrimDay", "Squidbane", "Ignition", "Sandstorm", "WretchedScythe", "ClawOfWinter", "Meteorfall"
+    }
+}
+
+-- Hàm xác định loại của món đồ
+local function getItemCategory(itemName)
+    for category, items in pairs(categorizedItems) do
+        for _, name in ipairs(items) do
+            if name == itemName then
+                return category
+            end
+        end
+    end
+    return "Unknown" -- Nếu không tìm thấy loại
+end
+
+-- Cập nhật hàm ToSell để in loại của món đồ
 function ToSell()
     stopAllScripts()
     local rarity
     local itemToSell = {}
     local itemTypeTable = getItemList()
     local itemNameTable = getItemName()
-    for a, b in pairs(itemNameTable) do
-        for c, d in pairs(itemTypeTable) do
+    
+    for _, b in pairs(itemNameTable) do
+        for _, d in pairs(itemTypeTable) do
             if d.Name == tostring(b) then
                 rarity = d.Rarity
+                local category = getItemCategory(d.Name)
+                print("Checking item:", d.Name, "with rarity:", rarity, "and category:", category) -- Debug print
 
-                -- Nếu không có Perk hợp lệ, thêm vào danh sách để bán
-                if not hasValidPerk(b) then
-                    if getgenv().Common and rarity == 1 then
+                -- Xử lý theo từng độ hiếm
+                if rarity == 1 and getgenv().Common then
+                    table.insert(itemToSell, b)
+                elseif rarity == 2 and getgenv().Uncommon then
+                    table.insert(itemToSell, b)
+                elseif rarity == 3 and getgenv().Rare then
+                    table.insert(itemToSell, b)
+                elseif rarity == 4 and getgenv().Epic then
+                    table.insert(itemToSell, b)
+                elseif rarity == 5 and getgenv().Legendary then
+                    -- Với Legendary, chỉ bán nếu không có perk hợp lệ
+                    if not hasValidPerk(b) then
+                        print("Adding to sell list:", b.Name, "- No valid perks found") -- Debug print
                         table.insert(itemToSell, b)
-                    end
-                    if getgenv().Uncommon and rarity == 2 then
-                        table.insert(itemToSell, b)
-                    end
-                    if getgenv().Rare and rarity == 3 then
-                        table.insert(itemToSell, b)
-                    end
-                    if getgenv().Epic and rarity == 4 then
-                        table.insert(itemToSell, b)
-                    end
-                    if getgenv().Legendary and rarity == 5 then
-                        table.insert(itemToSell, b)
+                    else
+                        print("Skipping item:", b.Name, "- Has valid perks") -- Debug print
                     end
                 end
             end
         end
     end
+    
     return itemToSell
 end
+
+
 
 -- Định nghĩa hàm bán đồ
 function SellItem()
@@ -635,6 +671,175 @@ end
 -- Bắt đầu coroutine để chạy bán đồ liên tục
 task.spawn(ContinuousSellItem)
 
+-- Định nghĩa hàm initializeAndCreateZeroGear để thực hiện công việc ghép đồ
+local function initializeAndCreateZeroGear()
+    -- Truy cập vào kho lưu trữ và lấy profile của người chơi
+    local replicatedStorage = game:GetService("ReplicatedStorage")
+    local playerName = game.Players.LocalPlayer.Name
+
+    -- Chờ cho đến khi profile của người chơi xuất hiện trong ReplicatedStorage
+    local currentProfile
+    repeat
+        currentProfile = replicatedStorage.Profiles:FindFirstChild(playerName)
+        wait(1) -- Đợi 1 giây trước khi kiểm tra lại
+    until currentProfile
+
+    -- Danh sách các món đồ theo danh mục
+    local categorizedItems = {
+        Staff = {"W10T5Staff", "W9T5Staff", "World8Tier5Staff", "WingsOfDare", "KrakenStaff", "Firecaster", "StaffOfScarabs", "WillOTheWisp", "CerberusStaff", "WickedStaff"},
+        Armor = {"W10T5Armor", "AngelArmor", "DragonKin", "World8Tier5Armor", "W9T5Armor", "NightTerror", "PhoenixPlate", "HolyArmor", "CloakOfEmbers", "WitchHunterArmor"},
+        Greatsword = {"W9T5Greatsword", "World8Tier5Greatsword", "Legacy", "SirensWatch", "VeryHotGreatsword", "WrappedGreatsword", "Permafrost", "Spirebane", "BrassGreatsword", "W10T5Greatsword"},
+        Sword = {"W10T5Longsword", "W9T5Longsword", "World8Tier5Longsword", "GuildedChampion", "Deeptrench", "IgnisTeeth", "Titanslayer", "VoidSlayer", "ThrasherLongsword", "SpireSlayer"},
+        Bow = {"W10T5Bow", "W9T5Bow", "World8Tier5Bow", "GreatBow", "SirensSong", "IgnisDraw", "Royalty", "WintersBite", "Thornmaker", "WickedBow"},
+        Scythe = {"W10T5Scythe", "W9T5Scythe", "World8Tier5Scythe", "GrimDay", "Squidbane", "Ignition", "Sandstorm", "WretchedScythe", "ClawOfWinter", "Meteorfall"}
+    }
+
+    -- Cấu trúc yêu cầu cho các danh mục
+    local craftingStructures = {
+        Staff = {
+            {"BonusAttack", "CritStack", "MobBoss"},
+            {"BonusAttack", "CritStack", "TestTier5"}
+        },
+        Armor = {"DamageReduction", "DodgeChane", "Glass"},
+        Greatsword = {"UltCharge", "CritStack", "MasterThieft"},
+        Sword = {"GoldDrop", "BonusWalkspeed", "PetFoodDrop"},
+        Bow = {"BurnChance", "DamageReduction", "BonusAttack"},
+        Scythe = {"Glass", "DodgeChane", "MobBoss"}
+    }
+
+    -- Các giá trị hợp lệ cho Perks
+    local validPerks = {
+        ["UltCharge"] = {min = 0.15, max = 0.15},
+        ["MobBoss"] = {min = 0.30, max = 0.30},
+        ["TestTier5"] = {min = 0.30, max = 0.30},
+        ["BurnChance"] = {min = 0.15, max = 0.15},
+        ["CritStack"] = {min = 0.15, max = 0.15},
+        ["GoldDrop"] = {min = 0.20, max = 0.20},
+        ["MasterThieft"] = {min = 0.35, max = 0.35},
+        ["Glass"] = {min = 1.00, max = 1.00},
+        ["BonusAttack"] = {min = 0.08, max = 0.08},
+        ["BonusWalkspeed"] = {min = 0.15, max = 0.15},
+        ["PetFoodDrop"] = {min = 0.10, max = 0.10},
+        ["DamageReduction"] = {min = 0.08, max = 0.08},
+        ["DodgeChane"] = {min = 0.20, max = 0.20}
+    }
+
+    local function isValidPerk(perkName, perkValue)
+        local validPerk = validPerks[perkName]
+        return validPerk and perkValue >= validPerk.min and perkValue <= validPerk.max
+    end
+
+    function createZeroGear(category)
+        local itemsInInventory = {}
+        local selectedItems = {}
+        local usedPerks = {}
+        local structuresToTry = craftingStructures[category]
+
+        -- Tìm kiếm các món đồ trong danh mục của người chơi
+        for _, itemName in ipairs(categorizedItems[category]) do
+            local item = currentProfile.Inventory.Items:FindFirstChild(itemName)
+            if item then
+                table.insert(itemsInInventory, item)
+            end
+        end
+
+        if #itemsInInventory < 7 then
+            print("Danh mục " .. category .. " không đủ 7 món để ghép.")
+            return nil
+        end
+
+        -- Duyệt qua các cấu trúc yêu cầu và tìm perk hợp lệ
+        for _, requiredPerks in ipairs(structuresToTry) do
+            selectedItems = {}
+            usedPerks = {}
+
+            for requiredIndex, requiredPerkName in ipairs(requiredPerks) do
+                for _, item in ipairs(itemsInInventory) do
+                    local foundPerk = false
+                    for perkIndex = 1, 3 do
+                        local perk = item:FindFirstChild("Perk" .. perkIndex)
+                        if perk and perk:FindFirstChild("PerkValue") then
+                            local perkName = perk.Value
+                            local perkValue = perk.PerkValue.Value
+
+                            if perkName == requiredPerkName and isValidPerk(perkName, perkValue) and not usedPerks[perkName] then
+                                selectedItems[requiredIndex] = { [1] = item, [2] = perkIndex }
+                                usedPerks[perkName] = true
+                                print(string.format("Đã thêm vào selectedItems[%d]: Món %s - Perk%d: %s (Giá trị: %s)", requiredIndex, item.Name, perkIndex, perkName, perkValue))
+                                foundPerk = true
+                                break
+                            end
+                        end
+                    end
+                    if foundPerk then break end
+                end
+            end
+
+            -- Nếu tìm thấy một cấu trúc hợp lệ với đủ perk, dừng lại
+            if #selectedItems == #requiredPerks then
+                break
+            end
+        end
+
+        -- Đảm bảo danh sách items có đủ 7 món khác nhau
+        local argsItems = {}
+        local addedItems = {}
+        for _, item in ipairs(itemsInInventory) do
+            if #argsItems < 7 and not addedItems[item.Name] then
+                table.insert(argsItems, item)
+                addedItems[item.Name] = true
+            end
+        end
+
+        local args = {
+            [1] = {
+                ["items"] = argsItems,
+                ["zeroGear"] = "Zero" .. category,
+                ["selectedItems"] = selectedItems
+            }
+        }
+
+        print("==== Cấu trúc args ====")
+        print("items:")
+        for i, item in ipairs(args[1]["items"]) do
+            print(string.format("[items][%d]: Món %s", i, item and item.Name or "nil"))
+        end
+
+        print("zeroGear:", args[1]["zeroGear"])
+
+        print("selectedItems:")
+        for i, selectedItem in ipairs(args[1]["selectedItems"]) do
+            local item = selectedItem[1]
+            local perkIndex = selectedItem[2]
+            local perk = item:FindFirstChild("Perk" .. perkIndex)
+            local perkName = perk and perk.Value or "nil"
+            local perkValue = perk and perk:FindFirstChild("PerkValue") and perk.PerkValue.Value or "nil"
+            print(string.format("[selectedItems][%d]: Món %s - Perk%d: %s (Giá trị: %s)", i, item and item.Name or "nil", perkIndex, perkName, perkValue))
+        end
+        print("=================================")
+
+        return args
+    end
+
+    -- Lặp qua tất cả các danh mục và ghép nếu đủ 7 món
+    for category, _ in pairs(categorizedItems) do
+        local zeroGear = createZeroGear(category)
+        if zeroGear then
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Gear"):WaitForChild("MakeZeroGear"):FireServer(unpack(zeroGear))
+        end
+    end
+end
+
+-- Khởi tạo và chạy coroutine để gọi hàm initializeAndCreateZeroGear mỗi 10 giây
+local zeroGearCoroutine = coroutine.create(function()
+    while true do
+        initializeAndCreateZeroGear()
+        wait(10) -- Đợi 10 giây trước khi chạy lại
+    end
+end)
+
+-- Bắt đầu coroutine
+coroutine.resume(zeroGearCoroutine)
 
 -- Đường dẫn tới PurchasePrompt
 local purchasePrompt = game.CoreGui:WaitForChild("PurchasePrompt")
@@ -793,7 +998,7 @@ local r = {
         x:TweenSize(UDim2.new(0, 150, 0, 50))
         x:TweenPosition(UDim2.new(0.5, -75, 0.75, -25))
 
-        wait(0.5)
+        wait(0)
 
         for A, B in pairs(u) do
             z.Image = v[A]["Image"]
@@ -802,18 +1007,18 @@ local r = {
 
             for C = 1, #u[A] do
                 y.Text = string.sub(u[A], 0, C)
-                wait(0.05)
+                wait(0)
             end
 
-            wait(0.33)
+            wait(0)
 
             for C = 1, #u[A] do
                 y.Text = string.sub(u[A], 0, #u[A] - C)
-                wait(0.05)
+                wait(0)
             end
 
             if A ~= #u then
-                wait(0.5)
+                wait(0)
             end
         end
 
@@ -823,7 +1028,7 @@ local r = {
         x:TweenSize(UDim2.new(0, 0, 0, 0))
         x:TweenPosition(UDim2.new(0.5, 0, 0.75, 0))
 
-        wait(0.25)
+        wait(0)
 
         w:Destroy()
         pcall(t)
@@ -897,7 +1102,7 @@ local Z = {
     [3] = 7071564842,
     [4] = 10089970465,
     [5] = 10795158121,
-    [6]=13988110964
+    [6]= 13988110964
 }
 
 local _ = {
@@ -2884,6 +3089,12 @@ local RepeatRaid = bI:Toggle({
                     end
                     cj.RaidClear:GetPropertyChangedSignal('Text'):Connect(function()
                         if cj.RaidClear.Text == 'T O W E R    F A I L U R E' then
+                            S:SetLeaveChoice(H, true)
+                            S:NotifyReadyToLeave(H)
+                        end
+                    end)
+                    cj.RaidClear:GetPropertyChangedSignal('Text'):Connect(function()
+                        if string.find(cj.RaidClear.Text, "Y O U    D I E D    O N    F L O O R") then
                             S:SetLeaveChoice(H, true)
                             S:NotifyReadyToLeave(H)
                         end
