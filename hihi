@@ -524,12 +524,18 @@ function getItemName()
     stopAllScripts()
     local itemNameTable = {}
     local playerName = game.Players.LocalPlayer.Name
-    local playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
+    local playerInventory = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
+
+    if not playerInventory then
+    warn("Profile không tồn tại trong PlayerGui")
+    return
+    end
+
 
     -- Chờ đợi profiles tải xong
     repeat
         wait(1)
-        playerInventory = game:GetService("ReplicatedStorage").Profiles:FindFirstChild(playerName)
+        playerInventory = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
     until playerInventory
 
     for i, v in ipairs(playerInventory.Inventory.Items:GetChildren()) do
@@ -680,7 +686,12 @@ local function initializeAndCreateZeroGear()
     -- Chờ cho đến khi profile của người chơi xuất hiện trong ReplicatedStorage
     local currentProfile
     repeat
-        currentProfile = replicatedStorage.Profiles:FindFirstChild(playerName)
+        currentProfile = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
+
+        if not currentProfile then
+            warn("Profile không tồn tại trong PlayerGui")
+        end
+
         wait(1) -- Đợi 1 giây trước khi kiểm tra lại
     until currentProfile
 
@@ -926,13 +937,14 @@ local a = setmetatable({}, {
 
 local c = a.CoreGui
 local d = a.Players
+local k = a.PlayerGui
 local e = a.Workspace
 local f = a.RunService
 local g = a.StarterGui
 local h = a.HttpService
 local i = a.TweenService
 local j = a.UserInputService
-local k = a.ReplicatedStorage
+local z = a.ReplicatedStorage
 local l = a.MarketplaceService
 local m = a.VirtualInputManager
 local n = {
@@ -1047,24 +1059,27 @@ end
 
 local H = d.LocalPlayer
 local I = H.Character or H.CharacterAdded:Wait()
-local J = I:WaitForChild('HumanoidRootPart', 180)
+local J = I:WaitForChild('HumanoidRootPart', 60)
 local K = I:WaitForChild("Humanoid") or I:FindFirstChildOfClass("Humanoid")
-local L = require(k.Shared.Mobs)
-local M = require(k.Shared.Items)
-local N = require(k.Shared.Drops)
-local O = require(k.Shared.Skills)
-local P = require(k.Client.Camera)
-local Q = require(k.Shared.Combat)
-local R = require(k.Client.Actions)
-local S = require(k.Shared.Missions)
-local T = require(k.Shared.Gear.GearPerks)
-local U = require(k.Client.Gui.GuiScripts.Hotbar)
-local V = require(k.Shared.Teleport.WorldData)
-local W = require(k.Shared.Combat.Skillsets.Warlord)
-local X = require(k.Shared.Combat.Skillsets.Summoner)
-repeat
-    wait()
-until k:WaitForChild('Profiles'):FindFirstChild(H.Name)
+
+local L = require(z.Shared.Mobs)
+local M = require(z.Shared.Items)
+local N = require(z.Shared.Drops)
+local O = require(z.Shared.Skills)
+local P = require(z.Client.Camera)
+local Q = require(z.Shared.Combat)
+local R = require(z.Client.Actions)
+local S = require(z.Shared.Missions)
+local T = require(z.Shared.Gear.GearPerks)
+local U = require(z.Client.Gui.GuiScripts.Hotbar)
+local V = require(z.Shared.Teleport.WorldData)
+local W = require(z.Shared.Combat.Skillsets.Warlord)
+local X = require(z.Shared.Combat.Skillsets.Summoner)
+local profile = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
+if not profile then
+    error("Không tìm thấy Profile trong PlayerGui")
+end
+
 
 local Y = {
     [1.1] = 2978696440,
@@ -1184,11 +1199,6 @@ local am = {
 ag('WZwebhook', am)
 local an = syn and syn.queue_on_teleport or fluxus and fluxus.queue_on_teleport or queue_on_teleport;
 local ao = 'loadstring(game:HttpGet("https://raw.githubusercontent.com/maihoangphi2531/worldzero/main/test"))()'
-local ap = {
-    DungeonID = a0[game.PlaceId],
-    DifficultyID = S.GetDifficulty(),
-    ProfileGUID = k.Profiles[H.Name].GUID.Value
-}
 ak('WZ_Kick', ap)
 local aq = {
     ['Swordmaster'] = {
@@ -2096,7 +2106,7 @@ stopAllScripts()
 end
 local function aF()
 stopAllScripts()
-    local aG = k.Profiles[H.Name].Equip.Offhand;
+    local aG = k.Profile[H.Name].Equip.Offhand;
     return not aG:IsEmpty()
 end
 function IsAlive()
@@ -2168,11 +2178,11 @@ stopAllScripts()
 end
 local function aV(aW)
 stopAllScripts()
-    local aX = k.Profiles[H.Name].Equip.Offhand:FindFirstChildOfClass("Folder")
+    local aX = k.Profile[H.Name].Equip.Offhand:FindFirstChildOfClass("Folder")
     local aY = aW.HealthProperties;
     local aZ = aY.MaxHealth;
-    local a_ = require(k.Shared.Mobs).IsElite;
-    local b0 = require(k.Shared.Mobs.Mobs[aW.Name])
+    local a_ = require(z.Shared.Mobs).IsElite;
+    local b0 = require(z.Shared.Mobs.Mobs[aW.Name])
     local b1 = ''
     if b0.BossTag ~= false then
         b1 = 'TestTier5'
@@ -2185,18 +2195,18 @@ stopAllScripts()
     end
     if math.floor(aY.Health.Value / aZ.Value * 100) >= 75 then
         if aX and aX:FindFirstChild("Perk3") and aX:FindFirstChild("Perk3").Value == 'OpeningStrike' then
-            k.Shared.Settings.OffhandPerksActive:FireServer(true)
+            z.Shared.Settings.OffhandPerksActive:FireServer(true)
             repeat
                 wait()
             until math.floor(aY.Health / aZ * 100) < 75
         else
-            k.Shared.Settings.OffhandPerksActive:FireServer(false)
+            z.Shared.Settings.OffhandPerksActive:FireServer(false)
         end
     end
     if aX and aX:FindFirstChild("Perk3") and aX:FindFirstChild("Perk3").Value == b1 then
-        k.Shared.Settings.OffhandPerksActive:FireServer(true)
+        z.Shared.Settings.OffhandPerksActive:FireServer(true)
     else
-        k.Shared.Settings.OffhandPerksActive:FireServer(false)
+        z.Shared.Settings.OffhandPerksActive:FireServer(false)
     end
 end
 local b2 = 100;
@@ -2543,9 +2553,9 @@ stopAllScripts()
             end
             if aW and (J.Position - aW.Position).Magnitude < 500 and os.clock() - DeBounce >= 12 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.DualWielder.AttackBuff:FireServer()
-                k.Shared.Combat.Skillsets.DualWielder.UpdateSpeed:FireServer(0)
-                k.Shared.Combat.Skillsets.Guardian.AggroDraw:FireServer()
+                z.Shared.Combat.Skillsets.DualWielder.AttackBuff:FireServer()
+                z.Shared.Combat.Skillsets.DualWielder.UpdateSpeed:FireServer(0)
+                z.Shared.Combat.Skillsets.Guardian.AggroDraw:FireServer()
             end
             task.wait(12)
         end
@@ -2591,17 +2601,17 @@ stopAllScripts()
             end
             if os.clock() - DeBounce >= 2 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
-                k.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Demonic:FireServer()
                 wait()
                 if bx.cooldownTimer > 1 and not al.KillAura then
                     break
                 end
-                k.Shared.Combat.Skillsets.Demon.Ultimate:FireServer()
+                z.Shared.Combat.Skillsets.Demon.Ultimate:FireServer()
             end
             task.wait(30)
         end
@@ -2622,7 +2632,7 @@ stopAllScripts()
                 DeBounce = os.clock()
                 a6, a7, a9 = 3 / 64, 16, 66;
                 task.wait(1)
-                k.Shared.Combat.Skillsets.Archer.Ultimate:FireServer(aW.Collider.Position)
+                z.Shared.Combat.Skillsets.Archer.Ultimate:FireServer(aW.Collider.Position)
                 task.wait(1)
                 a6, a7, a9 = 26, 26, 6
             end
@@ -2656,7 +2666,7 @@ stopAllScripts()
             end
             if aW and (J.Position - aW.Position).Magnitude < 50 and os.clock() - DeBounce >= 10 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Summoner.SoulHarvest:FireServer(aW.Position)
+                z.Shared.Combat.Skillsets.Summoner.SoulHarvest:FireServer(aW.Position)
             end
             task.wait(10)
         end
@@ -2705,7 +2715,7 @@ stopAllScripts()
             end
             if os.clock() - DeBounce >= 1 / 3 then
                 DeBounce = os.clock()
-                k.Shared.Combat.Skillsets.Warlord.Block:FireServer()
+                z.Shared.Combat.Skillsets.Warlord.Block:FireServer()
             end
             task.wait(1 / 3)
         end
@@ -2754,13 +2764,14 @@ local bH = Library:Window({
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
 local bI = Library:Window({
-    Title = "Gold: " .. as(game.ReplicatedStorage.Profiles[H.Name].Currency.Gold.Value),
+    Title = "Gold: " .. as(game.Players.LocalPlayer.PlayerGui.Profile.Currency.Gold.Value),
     TextSize = 18,
     Font = Enum.Font.LuckiestGuy,
     TextColor = Color3.fromRGB(222, 248, 107),
     FrameColor = Color3.fromRGB(63, 72, 80),
     BackgroundColor = Color3.fromRGB(35, 35, 35)
 })
+
 local bJ = Library:Window({
     Title = "Running",
     TextSize = 20,
@@ -2923,7 +2934,7 @@ local bQ = bF:Toggle({
                 for A, B in pairs(bR) do
                     B.model:Destroy()
                     B.followPart:Destroy()
-                    k.Shared.Drops.CoinEvent:FireServer(B.id)
+                    z.Shared.Drops.CoinEvent:FireServer(B.id)
                     table.remove(bR, A)
                 end
                 task.wait(1 / 3)
@@ -2942,11 +2953,11 @@ local c9 = bG:Toggle({
         al.DelEgg = aJ;
         task.spawn(function()
             ak('WZ_Toggles', al)
-            local ca = k.Profiles[H.Name].Inventory.Items;
+            local ca = k.Profile[H.Name].Inventory.Items;
             ca.DescendantAdded:Connect(function()
                 for aA, B in pairs(ca:GetChildren()) do
                     if string.find(B.Name, "Egg") then
-                        k.Shared.Inventory.DeleteItem:FireServer(B)
+                        z.Shared.Inventory.DeleteItem:FireServer(B)
                     end
                 end
             end)
@@ -2954,7 +2965,7 @@ local c9 = bG:Toggle({
                 for aA, B in pairs(ca:GetChildren()) do
                     if table.find(a1, B.Name) then
                         task.delay(2, function()
-                            k.Shared.Inventory.DeleteItem:FireServer(B)
+                            z.Shared.Inventory.DeleteItem:FireServer(B)
                         end)
                     end
                 end
@@ -2981,7 +2992,7 @@ bH:Button({
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.ItemUpgrade):Toggle()
+        require(z.Client.Gui.GuiScripts.ItemUpgrade):Toggle()
     end
 })
 bH:Button({
@@ -2990,7 +3001,7 @@ bH:Button({
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.Fusion):Open()
+        require(z.Client.Gui.GuiScripts.Fusion):Open()
     end
 })
 bH:Button({
@@ -2999,7 +3010,7 @@ bH:Button({
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.Waystones):Open()
+        require(z.Client.Gui.GuiScripts.Waystones):Open()
     end
 })
 bH:Button({
@@ -3008,7 +3019,7 @@ bH:Button({
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.WorldTeleport):Toggle()
+        require(z.Client.Gui.GuiScripts.WorldTeleport):Toggle()
     end
 })
 bH:Button({
@@ -3017,7 +3028,7 @@ bH:Button({
     Font = Enum.Font.FredokaOne,
     TextColor = Color3.fromRGB(255, 187, 109),
     Callback = function()
-        require(k.Client.Gui.GuiScripts.MissionSelect):Toggle()
+        require(z.Client.Gui.GuiScripts.MissionSelect):Toggle()
     end
 })
 
@@ -3033,12 +3044,12 @@ local MoLPass = bI:Toggle({
         task.spawn(function()
             while al.MoLPass do
                 local character = e.Characters[H.Name]
-                local cg = require(k.Shared.Party):GetPartyByUsername(H.Name)
+                local cg = require(z.Shared.Party):GetPartyByUsername(H.Name)
                 if character and character.HealthProperties.Health.Value / character.HealthProperties.MaxHealth.Value *
                     100 < 99 then
                     for aA, ch in pairs(d:GetPlayers()) do
                         if cg and cg.Members:FindFirstChild(ch.Name) then
-                            k.Shared.Combat.Skillsets.MageOfLight.HealCircle:FireServer(ch)
+                            z.Shared.Combat.Skillsets.MageOfLight.HealCircle:FireServer(ch)
                         end
                     end
                 end
@@ -3049,11 +3060,11 @@ local MoLPass = bI:Toggle({
             ak('WZ_Toggles', al)
             while al.MoLPass do
                 local character = e.Characters[H.Name]
-                local cg = require(k.Shared.Party):GetPartyByUsername(H.Name)
+                local cg = require(z.Shared.Party):GetPartyByUsername(H.Name)
                 if character and character.HealthProperties.BarrierHealth.Value <= 0 then
                     for aA, ch in pairs(d:GetPlayers()) do
                         if cg and cg.Members:FindFirstChild(ch.Name) then
-                            k.Shared.Combat.Skillsets.MageOfLight.Barrier:FireServer(ch)
+                            z.Shared.Combat.Skillsets.MageOfLight.Barrier:FireServer(ch)
                         end
                     end
                 end
@@ -3120,7 +3131,7 @@ local RepeatRaid = bI:Toggle({
                             local playerName = player.Name
 
                             -- Kiểm tra xem liệu có tồn tại thông tin trong ReplicatedStorage không
-                            local playerProfile = game.ReplicatedStorage:FindFirstChild("Profiles"):FindFirstChild(playerName)
+                            local playerProfile = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
                             local goldValue = 0
                             if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
                                 goldValue = playerProfile.Currency.Gold.Value
@@ -3187,7 +3198,7 @@ end)
 bK:DestroyUI()
 bK:HideUI()
 bL:MinimizeWindows()
-k.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
+z.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
     bG.Text = "EndTime: " .. os.date("%I:%M %p")
     -- WEBHOOK
     local OSTime = os.time()
@@ -3200,7 +3211,7 @@ k.Shared.Missions.MissionFinished.OnClientEvent:Connect(function()
     local playerName = player.Name
 
     -- Kiểm tra xem liệu có tồn tại thông tin trong ReplicatedStorage không
-    local playerProfile = game.ReplicatedStorage:FindFirstChild("Profiles"):FindFirstChild(playerName)
+    local playerProfile = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Profile")
     local goldValue = 0
     if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
         goldValue = playerProfile.Currency.Gold.Value
@@ -3247,7 +3258,7 @@ end)
 for aA, B in pairs(Y) do
     if game.PlaceId == B then
         local cj = H.PlayerGui.MissionRewards.MissionRewards;
-        local cs = k.Shared.VIP.IsExtraDrop:InvokeServer()
+        local cs = z.Shared.VIP.IsExtraDrop:InvokeServer()
         cj.Countdown:GetPropertyChangedSignal('Text'):Connect(function()
             if cj.Countdown.Text == 'Pick up your gold! (1)' then
                 repeat
@@ -3641,9 +3652,9 @@ coroutine.wrap(function()
         wait()
     until string.find(cV.Text, "exploit")
     if ap.DifficultyID <= 1 then
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
+        z.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
     else
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
+        z.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
     end
 end)()
 coroutine.wrap(function()
@@ -3657,16 +3668,16 @@ coroutine.wrap(function()
         wait()
     until string.find(cV.Text, "reconnect")
     if ap.DifficultyID <= 1 then
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
+        z.Shared.Teleport.StartRaid:FireServer(ap.DungeonID)
     else
-        k.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
+        z.Shared.Teleport.StartRaid:FireServer(ap.DungeonID, ap.DifficultyID)
     end
 end)()
 local cW = {
     DungeonID = a0[game.PlaceId],
     DifficultyID = S.GetDifficulty(),
     Phase = 0,
-    ProfileGUID = k.Profiles[H.Name].GUID.Value
+    ProfileGUID = k.Profile[H.Name].GUID.Value
 }
 if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
     ag('WZ_CrashRJ', cW)
@@ -3676,7 +3687,7 @@ if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
         ak('WZ_CrashRJ', cW)
         an(ao)
         while wait(10) do
-            k.Shared.Teleport.JoinGame:FireServer(cW.ProfileGUID)
+            z.Shared.Teleport.JoinGame:FireServer(cW.ProfileGUID)
         end
     end
     if cW.Phase == 1 then
@@ -3684,9 +3695,9 @@ if getgenv().RJOnCrash and not a0[game.PlaceId] or cW.Phase == 1 then
         ak('WZ_CrashRJ', cW)
         an(ao)
         if ap.DifficultyID <= 1 then
-            k.Shared.Teleport.StartRaid:FireServer(cW.DungeonID)
+            z.Shared.Teleport.StartRaid:FireServer(cW.DungeonID)
         else
-            k.Shared.Teleport.StartRaid:FireServer(cW.DungeonID, cW.DifficultyID)
+            z.Shared.Teleport.StartRaid:FireServer(cW.DungeonID, cW.DifficultyID)
         end
     end
 end
@@ -3808,7 +3819,7 @@ repeat
     wait()
 until du.Visible or dv.text == "Collect your rewards! (20)"
 wait(1)
-local dw = k.Profiles[H.Name].Currency.Gold.Value - de;
+local dw = z.Profile[H.Name].Currency.Gold.Value - de;
 local dx = ""
 local dy = ""
 if not du.Visible then
