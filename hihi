@@ -1,3 +1,55 @@
+wait(10)
+-- Hàm để chạy vòng lặp gửi "UnequipItem"
+local function unequipLoop()
+    -- Đợi game tải hoàn toàn trước khi bắt đầu vòng lặp
+    if not game:IsLoaded() then
+        game.Loaded:Wait() -- Chờ game hoàn toàn tải
+    end
+
+    -- Lấy tên người chơi hiện tại
+    local playerName = game.Players.LocalPlayer.Name
+
+    while true do
+        -- Kiểm tra PlayerEquips và Hat1 có tồn tại trước khi chạy
+        local playerEquips = game:GetService("ReplicatedStorage"):WaitForChild("PlayerEquips", 10)
+        if not playerEquips then
+            warn("PlayerEquips không tồn tại, thử lại sau...")
+            wait(1) -- Chờ trước khi lặp lại
+            continue
+        end
+
+        local playerFolder = playerEquips:FindFirstChild(playerName)
+        if not playerFolder then
+            warn("Không tìm thấy thư mục cho người chơi: " .. playerName)
+            wait(1) -- Chờ trước khi lặp lại
+            continue
+        end
+
+        local hat1 = playerFolder:FindFirstChild("Hat1")
+        if not hat1 then
+            warn("Hat1 không tồn tại cho người chơi: " .. playerName)
+            wait(1) -- Chờ trước khi lặp lại
+            continue
+        end
+
+        -- Xác định các đối số
+        local args = { [1] = hat1 }
+
+        -- Gửi yêu cầu "UnequipItem"
+        game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Inventory"):WaitForChild("UnequipItem"):FireServer(unpack(args))
+
+        -- Chờ một khoảng thời gian trước khi lặp lại
+        wait(1) -- Tùy chỉnh thời gian chờ
+    end
+end
+
+-- Chạy vòng lặp ngay lập tức trong một coroutine
+task.spawn(unequipLoop)
+
+-- Các logic khác của bạn
+if not game:IsLoaded() then
+    game.Loaded:Wait() -- Chờ game hoàn toàn tải
+end
 local TeleportService = game:GetService("TeleportService")
 local isTeleporting = false -- Biến khóa để đảm bảo các hoạt động khác dừng lại khi teleportXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -71,7 +123,7 @@ local function teleportIfInSpecificLobby()
             TeleportService:Teleport(placeId)
         elseif game.PlaceId == 4310463616 then
             warn("Teleporting from World 1 to Hub 34")
-            local args = { [1] = 34 }
+            local args = { [1] = 38 }
 
             local replicatedStorage = game:GetService("ReplicatedStorage")
             local teleportService = replicatedStorage:WaitForChild("Shared", 5):WaitForChild("Teleport", 5)
@@ -340,7 +392,7 @@ local function runAfter7Minutes()
     stopAllScripts()
     
     -- Chờ 7 phút ( 620 giây)
-    wait(720)
+    wait(620)
 
     -- Sau khi chờ 7 phút, thực hiện đoạn mã
     local args = {
@@ -2421,7 +2473,22 @@ elseif ad == 'Warlord' then
     a5 = 5 / 64 + bf()
 end
 local function br()
-stopAllScripts()
+    stopAllScripts()
+
+    -- Lấy class của LocalPlayer và in log một lần
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    local playerClass = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Properties") and 
+                        LocalPlayer.Character.Properties:FindFirstChild("Class") and 
+                        LocalPlayer.Character.Properties.Class.Value
+
+    -- Log class hiện tại
+    if playerClass then
+        print("[Log] Class hiện tại của LocalPlayer:", playerClass)
+    else
+        print("[Log] Không tìm thấy class của LocalPlayer")
+    end
+
     task.spawn(function()
         while al.KillAura and IsAlive() do
             local aW = bi()
@@ -2434,44 +2501,71 @@ stopAllScripts()
                 end
             end
 
-            -- Kiểm tra khoảng cách giữa J và aW
-            if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
-                -- Kiểm tra ar[ad] tồn tại
-                if ar and ar[ad] then
-                    for bs, B in pairs(ar[ad]) do
-                        -- Kiểm tra các điều kiện của B và giá trị của aa
-                        if os.clock() - B.last > B.cooldown and aE(aa) then
-                            -- Tạo args cho FireServer
-                            local args = {
-                                [1] = bs,  -- bs là tên kỹ năng
-                                [2] = aW.Position,  -- Vị trí mục tiêu
-                                [4] = 1  -- Một giá trị có thể là boolean
-                            }
+            -- Danh sách các class
+            local rangedClasses = {'Mage', 'IcefireMage', 'MageOfLight', 'Archer', 'Summoner'}
+            local meleeClasses = {'Swordmaster', 'Defender', 'DualWielder', 'Berserker', 'Guardian', 'Paladin', 'Dragoon', 'Demon', 'Warlord'}
 
-                            -- Gọi FireServer để kích hoạt tấn công
-                            local success = pcall(function()
-                                game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
-                            end)
+            -- Kiểm tra class của ngzười chơi
+            if table.find(rangedClasses, playerClass) then
+                -- Điều kiện cho các class tầm xa
+                if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
+                    if ar and ar[ad] then
+                        for bs, B in pairs(ar[ad]) do
+                            if os.clock() - B.last > B.cooldown and aE(aa) then
+                                -- Cập nhật args cho các class tầm xa
+                                local args = {
+                                    [1] = bs,  -- bs là tên kỹ năng
+                                    [2] = aW.Position,  -- Vị trí mục tiêu
+                                    [4] = 1  -- Một giá trị có thể là boolean
+                                }
 
-                            if success then
-                                B.last = os.clock()
-                                aa = os.clock()
+                                local success = pcall(function()
+                                    game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
+                                end)
+
+                                if success then
+                                    B.last = os.clock()
+                                    aa = os.clock()
+                                end
+                            end
+                        end
+                    end
+                end
+            elseif table.find(meleeClasses, playerClass) then
+                -- Điều kiện cho các class cận chiến
+                KillAura.State = false -- Tắt KillAura cho các class cận chiến
+                print("[Log] KillAura.State đã được đặt thành false cho class cận chiến:", playerClass)
+
+                if aW and aW.Position and (J.Position - aW.Position).Magnitude < ab then
+                    if ar and ar[ad] then
+                        for bs, B in pairs(ar[ad]) do
+                            if os.clock() - B.last > B.cooldown and aE(aa) then
+                                -- Cập nhật args cho các class cận chiến
+                                local args = {
+                                    [1] = bs,  -- bs là tên kỹ năng
+                                    [2] = aW.Position,  -- Vị trí mục tiêu
+                                    [2] = aW.Position,  -- Vị trí mục tiêu vẫn là aW
+                                    [4] = 1
+                                }
+
+                                local success = pcall(function()
+                                    game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Combat"):WaitForChild("Attack"):FireServer(unpack(args))
+                                end)
+
+                                if success then
+                                    B.last = os.clock()
+                                    aa = os.clock()
+                                end
                             end
                         end
                     end
                 end
             end
+
             task.wait()
         end
     end)
 end
-
-
-
-
-
-
-
 local function bt()
 stopAllScripts()
     task.spawn(function()
@@ -3435,6 +3529,16 @@ if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
         end
     end)
 end
+local currentPlayer = game.Players.LocalPlayer
+local playerCharacter = workspace.Characters:FindFirstChild(currentPlayer.Name)
+
+if playerCharacter then
+    local characterClass = playerCharacter.Properties:FindFirstChild("Class")
+    if characterClass and table.find({'Swordmaster', 'Defender', 'DualWielder', 'Berserker', 'Guardian', 'Paladin', 'Dragoon', 'Demon', 'Warlord'}, characterClass.Value) then
+        KillAura.State = false
+    end
+end
+
 
 if game.PlaceId == 13988110964 or game.PlaceId == 14400549310 then
     H.PlayerGui.MissionObjective.MissionObjective.Label:GetPropertyChangedSignal('Text'):Connect(function()
