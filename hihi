@@ -16,82 +16,83 @@ local periodicWebhookUrl = 'https://discord.com/api/webhooks/1249664506448187443
 local eggList = {'MoltenEgg', 'OceanEgg', 'CatEgg', 'AlligatorEgg', 'FairyEgg'}
 local deleteEggEnabled = true -- Bật tính năng xóa trứng (true/false)
 
--- Hàm gửi request webhook
-local function sendWebhook(url, embed)
-    local success, response = pcall(function()
-        return fluxus and fluxus.request or http_request({
-            Url = url,
-            Method = "POST",
-            Headers = {
-                ["Content-Type"] = "application/json"
-            },
-            Body = HttpService:JSONEncode({ embeds = { embed } })
-        })
-    end)
-
-    if not success then
-        warn("[Webhook Error]: Lỗi khi gửi request!")
-    elseif response and response.StatusCode ~= 204 then
-        warn("[Webhook Error]: Phản hồi không thành công, mã trạng thái:", response.StatusCode)
-    else
-        print("[Webhook Sent]: Thành công!")
-    end
-end
-
--- Gửi webhook khi phát hiện người chơi bị cấm
+-- Hàm gửi webhook thông tin người chơi bị cấm
 local function sendPlayerWebhook(playerName)
     local OSTime = os.time()
     local Time = os.date('!*t', OSTime)
 
-    local embed = {
-        title = "Player Joined (Blacklisted)",
+    local Embed = {
+        title = 'Player Joined (Blacklisted)',
         color = 99999,
         footer = { text = game.JobId },
-        author = { name = "Roblox Server", url = "https://www.roblox.com/" },
+        author = { name = 'Roblox Server', url = 'https://www.roblox.com/' },
         fields = {
-            { name = "Player", value = playerName },
-            { name = "Join Time", value = os.date("%Y-%m-%d %H:%M:%S", OSTime) }
+            { name = 'Player', value = playerName },
+            { name = 'Join Time', value = os.date('%Y-%m-%d %H:%M:%S', OSTime) }
         },
-        timestamp = string.format(
-            "%d-%d-%dT%02d:%02d:%02dZ",
-            Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec
-        )
+        timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec),
     }
 
-    sendWebhook(playerWebhookUrl, embed)
+    pcall(function()
+        (syn and syn.request or http_request)({
+            Url = playerWebhookUrl,
+            Method = 'POST',
+            Headers = { ['Content-Type'] = 'application/json' },
+            Body = HttpService:JSONEncode({ embeds = { Embed } })
+        })
+    end)
 end
 
--- Gửi webhook định kỳ
+-- Hàm kiểm tra người chơi trong danh sách đen
+local function checkBlacklistedPlayers()
+    while true do
+        pcall(function()
+            local localPlayer = game.Players.LocalPlayer
+            for _, player in pairs(Players:GetPlayers()) do
+                if table.find(blacklistedIds, player.UserId) then
+                    print("Blacklisted player detected: " .. player.Name)
+                    sendPlayerWebhook(player.Name)
+                    localPlayer:Kick("A blacklisted player has joined the server.")
+                end
+            end
+        end)
+        wait(1) -- 1 giây mỗi lần
+    end
+end
+
+-- Gửi webhook định kỳ mỗi 10 phút
 local function sendPeriodicWebhook()
     while true do
-        wait(600) -- 10 phút
-        local OSTime = os.time()
-        local Time = os.date('!*t', OSTime)
+        pcall(function()
+            wait(600) -- 10 phút (600 giây)
+            local OSTime = os.time()
+            local localPlayer = Players.LocalPlayer
+            local goldValue = 0
 
-        local localPlayer = Players.LocalPlayer
-        local goldValue = 0
-        local playerProfile = localPlayer:FindFirstChild("PlayerGui"):FindFirstChild("Profile")
+            local playerProfile = localPlayer:FindFirstChild("PlayerGui"):FindFirstChild("Profile")
+            if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
+                goldValue = playerProfile.Currency.Gold.Value
+            end
 
-        if playerProfile and playerProfile:FindFirstChild("Currency") and playerProfile.Currency:FindFirstChild("Gold") then
-            goldValue = playerProfile.Currency.Gold.Value
-        end
+            local Embed = {
+                title = 'World//Zero',
+                color = 99999,
+                footer = { text = game.JobId },
+                author = { name = 'MAI HOÀNG PHI', url = 'https://www.roblox.com/' },
+                fields = {
+                    { name = localPlayer.Name, value = tostring(goldValue) },
+                    { name = 'NGÀY VÀ GIỜ', value = os.date('%Y-%m-%d %H:%M:%S', OSTime) }
+                },
+                timestamp = string.format('%d-%d-%dT%02d:%02d:%02dZ', os.date('!*t', OSTime).year, os.date('!*t', OSTime).month, os.date('!*t', OSTime).day, os.date('!*t', OSTime).hour, os.date('!*t', OSTime).min, os.date('!*t', OSTime).sec),
+            }
 
-        local embed = {
-            title = "World//Zero",
-            color = 99999,
-            footer = { text = game.JobId },
-            author = { name = "MAI HOÀNG PHI", url = "https://www.roblox.com/" },
-            fields = {
-                { name = localPlayer.Name, value = tostring(goldValue) },
-                { name = "Ngày và Giờ", value = os.date("%Y-%m-%d %H:%M:%S", OSTime) }
-            },
-            timestamp = string.format(
-                "%d-%d-%dT%02d:%02d:%02dZ",
-                Time.year, Time.month, Time.day, Time.hour, Time.min, Time.sec
-            )
-        }
-
-        sendWebhook(periodicWebhookUrl, embed)
+            (syn and syn.request or http_request)({
+                Url = periodicWebhookUrl,
+                Method = 'POST',
+                Headers = { ['Content-Type'] = 'application/json' },
+                Body = HttpService:JSONEncode({ embeds = { Embed } })
+            })
+        end)
     end
 end
 
@@ -133,6 +134,7 @@ local function unequipLoop()
 end
 
 -- Chạy các coroutine
+coroutine.wrap(checkBlacklistedPlayers)() -- 1 giây/lần
 coroutine.wrap(sendPeriodicWebhook)() -- 10 phút/lần
 coroutine.wrap(monitorInventory)() -- 1 giây/lần
 task.spawn(unequipLoop) -- 1 giây/lần
